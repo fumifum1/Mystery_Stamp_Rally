@@ -1,0 +1,204 @@
+/* グローバルスタイル */
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #2c3e50; /* 深い青 */
+    color: #ecf0f1; /* 明るいグレー */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    background-color: #34495e; /* 少し明るい青 */
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+/* ヘッダー */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 0;
+}
+
+.status-message {
+    font-size: 1rem;
+    margin: 5px 0;
+    color: #bdc3c7;
+}
+
+/* スタンプカード */
+.stamp-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stamp-card {
+    background-color: #2c3e50;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease-in-out;
+}
+
+.stamp-card:hover {
+    transform: translateY(-5px);
+}
+
+.stamp-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    color: #3498db; /* アクセントカラー */
+    margin: 0;
+}
+
+.stamp-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* 画像を丸くする */
+    object-fit: cover; /* 画像の比率を維持し、はみ出た部分をトリミング */
+    background-color: #34495e; /* 画像読み込み前の背景色 */
+    border: 3px solid #7f8c8d; /* 未取得時の枠線 */
+    transition: border-color 0.3s ease-in-out;
+}
+
+.stamped .stamp-icon {
+    border-color: #2ecc71; /* 取得済みの枠線の色 */
+}
+
+.hint-text {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #bdc3c7;
+    margin: 15px 0;
+    padding: 10px 15px;
+    background-color: #34495e;
+    border-left: 4px solid #3498db;
+    border-radius: 0 5px 5px 0;
+}
+
+.distance-info {
+    font-size: 0.9rem;
+    color: #95a5a6;
+    margin-bottom: 10px;
+}
+
+/* ボタン */
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+/* スタンプカード内のボタンの上の余白を調整 */
+.stamp-card .stamp-btn {
+    margin-top: 15px;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: scale(1.02);
+}
+
+.btn-primary:disabled {
+    background-color: #7f8c8d;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.button-container {
+    margin-top: 30px;
+}
+
+/* Completion Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex; /* Show the modal */
+}
+
+.modal-content {
+    background-color: #34495e;
+    margin: auto;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-close-btn {
+    color: #bdc3c7;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.completion-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 20px;
+}
