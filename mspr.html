@@ -42,16 +42,18 @@
     </div>
 
     <!-- QR Reader Modal -->
-    <div id="qr-reader-modal" class="modal">
-        <div class="modal-content">
-            <span id="qr-modal-close-btn" class="modal-close-btn">&times;</span>
-            <h2>QRコードをスキャン</h2>
+    <div id="qr-scanner-page" class="qr-scanner-page">
+        <header class="qr-scanner-header">
+            <button class="close-btn">&times;</button>
+            <h2 class="title">QRコードをスキャン</h2>
+        </header>
+        <div id="qr-reader"></div>
+        <div class="qr-scanner-footer">
             <p id="qr-message">カメラをQRコードに向けてください。</p>
-            <div id="qr-reader" style="width: 100%;"></div>
         </div>
     </div>
     <footer>
-        &copy; 2025 Synapse Creations. Sep.Stamprally_ver2.0.0 <a href="https://fumifum1.github.io/main/index.html">Creator</a>
+        &copy; 2025 Synapse Creations. Sep.Stamprally_ver2.1.0 <a href="https://fumifum1.github.io/main/index.html">Creator</a>
     </footer>   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="script.js"></script>

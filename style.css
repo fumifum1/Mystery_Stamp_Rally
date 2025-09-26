@@ -150,6 +150,61 @@ body {
     margin-top: 30px;
 }
 
+/* QR Scanner Page */
+.qr-scanner-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.qr-scanner-page.show {
+    transform: translateY(0);
+}
+
+.qr-scanner-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    position: relative;
+}
+
+.qr-scanner-header .title {
+    font-size: 1.2rem;
+    margin: 0 auto;
+}
+
+.qr-scanner-header .close-btn {
+    position: absolute;
+    left: 15px;
+    font-size: 2.5rem;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#qr-reader {
+    width: 100%;
+    flex-grow: 1;
+}
+
+.qr-scanner-footer {
+    padding: 20px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+}
+
 /* Completion Overlay */
 .completion-overlay {
     display: none; /* Hidden by default */
@@ -197,17 +252,6 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
-}
-
-/* Confetti Canvas */
-#confetti-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1001;
-    pointer-events: none;
 }
 
 /* フッター */

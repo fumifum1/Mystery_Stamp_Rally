@@ -19,7 +19,7 @@ const defaultStampPoints = [
     }
 ];
 
-const stampThreshold = 15; // 15メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
+const stampThreshold = 20; // 20メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
 const STAMPED_DATA_STORAGE_KEY = 'stampedData';
 
 // アプリケーションの状態を管理するオブジェクト
@@ -173,8 +173,8 @@ function handleStamp(pointId, imageData) {
 
 // QRコードスキャナーを開始
 function startQrScanner(targetPointId) {
+    dom.qrScannerPage.classList.add('show');
     dom.qrMessageSpan.textContent = 'カメラをQRコードに向けてください。';
-    dom.qrReaderModal.classList.add('show');
 
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
     
@@ -203,7 +203,7 @@ function stopQrScanner() {
         // 停止に失敗した場合（すでに停止している場合など）
         console.warn("QR Scanner stop failed.", err);
     });
-    dom.qrReaderModal.classList.remove('show');
+    dom.qrScannerPage.classList.remove('show');
 }
 
 // QRコードスキャン成功時の処理
@@ -311,8 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.stampCountSpan = document.getElementById('stamp-count');
     dom.clearButton = document.getElementById('clear-button');
     dom.completionBackBtn = document.getElementById('completion-back-btn');
-    dom.qrReaderModal = document.getElementById('qr-reader-modal');
-    dom.qrModalCloseBtn = document.getElementById('qr-modal-close-btn');
+    dom.qrScannerPage = document.getElementById('qr-scanner-page');
     dom.qrReaderElement = document.getElementById('qr-reader');
     dom.qrMessageSpan = document.getElementById('qr-message');
     state.html5QrCode = new Html5Qrcode("qr-reader");
@@ -337,8 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // モーダル関連
+    // dom.qrScannerPage内の閉じるボタンにイベントリスナーを設定
+    const qrScannerCloseBtn = dom.qrScannerPage.querySelector('.close-btn');
     dom.completionBackBtn.addEventListener('click', hideCompletionModal);
-    dom.qrModalCloseBtn.addEventListener('click', stopQrScanner);
+    qrScannerCloseBtn.addEventListener('click', stopQrScanner);
 
     // --- アプリケーションのメインロジック ---
 
