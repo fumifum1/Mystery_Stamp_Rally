@@ -125,7 +125,7 @@ function loadStampStatus() {
     // 既存のキャッシュをクリアしてから新しいデータをコピー
     Object.keys(state.stampedDataCache).forEach(key => delete state.stampedDataCache[key]);
     Object.assign(state.stampedDataCache, storedData);
-    updateUI();
+    updateAllUI();
 }
 
 // UIの更新
@@ -155,13 +155,23 @@ function updateUI() {
         }
     });
 
+    updateCompletionButton();
+}
+
+// UIの更新（リファクタリング）
+function updateAllUI() {
+    updateStampCardsUI();
+    updateCompletionButton();
+}
+
+function updateCompletionButton() {
     // コンプリートボタンの表示/非表示を切り替え
     const allPointsStamped = state.stampPoints.length > 0 && state.stampPoints.every(p => state.stampedDataCache[p.id]);
     if (allPointsStamped) {
         dom.completionTriggerBtn.style.display = 'block';
     } else {
         dom.completionTriggerBtn.style.display = 'none';
-    });
+    }
 }
 
 // スタンプボタンのクリック処理
@@ -171,7 +181,7 @@ function handleStamp(pointId, imageData) {
 
     state.stampedDataCache[pointId] = imageData; // メモリ上のキャッシュを更新
     localStorage.setItem(stampedDataStorageKey, JSON.stringify(state.stampedDataCache)); // localStorageも更新
-    updateUI();
+    updateAllUI();
     alert(`おめでとうございます！「${point.name}」のスタンプをゲットしました！`);
 }
 
