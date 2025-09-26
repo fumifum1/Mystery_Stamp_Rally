@@ -204,6 +204,8 @@ function stopQrScanner() {
         console.warn("QR Scanner stop failed.", err);
     });
     dom.qrScannerPage.classList.remove('show');
+    // メッセージを初期状態に戻す
+    dom.qrMessageSpan.textContent = 'カメラをQRコードに向けてください。';
 }
 
 // QRコードスキャン成功時の処理
@@ -255,45 +257,54 @@ function startConfetti() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const confettiPieces = [];
-    const pieceCount = 200;
+    let confettiPieces = [];
+    const pieceCount = 150;
     const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71'];
+    const gravity = 0.1;
+    const drag = 0.98;
 
-    for (let i = 0; i < pieceCount; i++) {
-        confettiPieces.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 10 + 5,
-            speed: Math.random() * 5 + 2,
-            rotation: Math.random() * 360,
-            rotationSpeed: Math.random() * 10 - 5,
-            color: colors[Math.floor(Math.random() * colors.length)]
-        });
+    function createConfetti() {
+        confettiPieces = [];
+        for (let i = 0; i < pieceCount; i++) {
+            const angle = Math.random() * Math.PI * 2; // 360度ランダムな角度
+            const speed = Math.random() * 8 + 4; // 初速
+            confettiPieces.push({
+                x: canvas.width / 2,
+                y: canvas.height, // 画面下中央から
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed * -1, // 上向きの力
+                size: Math.random() * 8 + 4,
+                rotation: Math.random() * 360,
+                rotationSpeed: Math.random() * 10 - 5,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
     }
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         confettiPieces.forEach(piece => {
-            piece.y += piece.speed;
+            // 物理演算
+            piece.vy += gravity;
+            piece.vx *= drag;
+            piece.vy *= drag;
+            piece.x += piece.vx;
+            piece.y += piece.vy;
             piece.rotation += piece.rotationSpeed;
-
-            if (piece.y > canvas.height) {
-                piece.y = -20;
-                piece.x = Math.random() * canvas.width;
-            }
 
             ctx.save();
             ctx.translate(piece.x, piece.y);
             ctx.rotate(piece.rotation * Math.PI / 180);
             ctx.fillStyle = piece.color;
-            ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
+            ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.7);
             ctx.restore();
         });
 
         confettiAnimationId = requestAnimationFrame(animate);
     }
-    animate();
+    createConfetti();
+    animate(); // アニメーション開始
 }
 
 function stopConfetti() {
