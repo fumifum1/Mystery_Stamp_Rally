@@ -20,7 +20,7 @@ const defaultStampPoints = [
 ];
 
 const stampThreshold = 20; // 20メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
-const STAMPED_DATA_STORAGE_KEY = 'stampedData';
+let stampedDataStorageKey = 'stampedData_default'; // ラリーごとにキーを動的に変更
 
 // アプリケーションの状態を管理するオブジェクト
 const state = {
@@ -79,6 +79,7 @@ async function loadStampPoints() {
 
     // 1. URLに 'bin' パラメータがあれば、jsonblob.comから設定を読み込む
     if (binId) {
+        stampedDataStorageKey = `stampedData_${binId}`; // ラリー固有の保存キーを設定
         try {
             console.log(`jsonblob.comから設定を読み込みます (Bin ID: ${binId})`);
             const response = await fetch(`https://jsonblob.com/api/jsonBlob/${binId}`);
@@ -118,7 +119,7 @@ async function loadStampPoints() {
 
 // ページ読み込み時にスタンプの状態をロード
 function loadStampStatus() {
-    const storedData = JSON.parse(localStorage.getItem(STAMPED_DATA_STORAGE_KEY)) || {};
+    const storedData = JSON.parse(localStorage.getItem(stampedDataStorageKey)) || {};
     // 既存のキャッシュをクリアしてから新しいデータをコピー
     Object.keys(state.stampedDataCache).forEach(key => delete state.stampedDataCache[key]);
     Object.assign(state.stampedDataCache, storedData);
@@ -159,7 +160,7 @@ function handleStamp(pointId, imageData) {
     if (!point) return;
 
     state.stampedDataCache[pointId] = imageData; // メモリ上のキャッシュを更新
-    localStorage.setItem(STAMPED_DATA_STORAGE_KEY, JSON.stringify(state.stampedDataCache)); // localStorageも更新
+    localStorage.setItem(stampedDataStorageKey, JSON.stringify(state.stampedDataCache)); // localStorageも更新
     updateUI();
     alert(`おめでとうございます！「${point.name}」のスタンプをゲットしました！`);
     
@@ -353,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // リセットボタン
     dom.clearButton.addEventListener('click', () => {
         if (confirm('本当にスタンプをリセットしますか？')) {
-            localStorage.removeItem(STAMPED_DATA_STORAGE_KEY);
+            localStorage.removeItem(stampedDataStorageKey);
             loadStampStatus(); // キャッシュをリロード
             alert('スタンプをリセットしました。');
         }
