@@ -83,10 +83,6 @@ body {
     transition: border-color 0.3s ease-in-out;
 }
 
-.stamped .stamp-icon {
-    border-color: #2ecc71; /* 取得済みの枠線の色 */
-}
-
 .hint-text {
     font-size: 0.9rem;
     font-style: italic;

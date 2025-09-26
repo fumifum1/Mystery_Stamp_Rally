@@ -1,41 +1,37 @@
 // スタンプポイントのデータ（クイズ情報を含む）
-const stampPoints = [
+const defaultStampPoints = [
     {
-        id: 'Apoint',
-        name: '宮崎県宮崎市-加護神社',
-        latitude: 31.857671668903887,
-        longitude: 131.43358943930386,
-        stampImage: 'Apoint.jpg',
-        hint: 'ヒント：樹齢約200年の大きな木'
+        id: 'dev_point_1',
+        name: '開発用テストポイント１',
+        latitude: 35.681236, // 東京駅
+        longitude: 139.767125,
+        stampedImageSrc: '', // 画像は空でもOK
+        hint: 'これは開発用のヒントです。'
     },
     {
-        id: 'Bpoint',
-        name: 'ひなた宮崎県総合運動公園',
-        latitude: 31.822937553365797,
-        longitude: 131.44847837597044,
-        stampImage: 'Bpoint.jpg',
-        hint: 'ヒント：日本の四季折々、池のほとり'
-    },
-    {
-        id: 'Cpoint',
-        name: '？？？神社',
-        latitude: 31.868149252123626,
-        longitude: 131.43150601893436,
-        stampImage: 'Cpoint.jpg',
-        hint: 'ヒント：赤江村大字本郷大字鵜戸尻に鎮座する鵜戸尻宮を合祀'
+        id: 'dev_point_2',
+        name: 'テストポイント２（画像あり）',
+        latitude: 35.658581, // 東京タワー
+        longitude: 139.745433,
+        // テスト用にローカルの画像を直接指定することもできます
+        stampedImageSrc: 'stamp_jpg/Apoint.jpg', 
+        hint: 'ヒント２'
     }
 ];
 
 const stampThreshold = 50; // 50メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
+const STAMPED_DATA_STORAGE_KEY = 'stampedData';
 
-// グローバル変数の宣言（DOM要素は後で代入）
-let stampCardsContainer, currentLocationSpan, stampCountSpan, clearButton, completionModal, modalCloseBtn;
+// アプリケーションの状態を管理するオブジェクト
+const state = {
+    stampPoints: [],
+    stampedDataCache: {},
+    userPosition: null,
+    html5QrCode: null,
+};
 
-const STORAGE_KEY = 'stampedData';
-
-// ----------------------------------------------------
-// ユーティリティ関数
-// ----------------------------------------------------
+// DOM要素への参照を保持するオブジェクト
+const dom = {};
 
 // 2つの座標間の距離をメートルで計算（Haversineの公式）
 function getDistance(lat1, lon1, lat2, lon2) {
@@ -44,7 +40,6 @@ function getDistance(lat1, lon1, lat2, lon2) {
     const φ2 = (lat2 * Math.PI) / 180;
     const Δφ = ((lat2 - lat1) * Math.PI) / 180;
     const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
               Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -52,18 +47,14 @@ function getDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// ----------------------------------------------------
-// UIと状態管理
-// ----------------------------------------------------
-
 // スタンプカードを動的に生成
 function createStampCards() {
-    if (!stampCardsContainer) {
+    if (!dom.stampCardsContainer) {
         console.error('Error: stamp-cards-container element not found in HTML.');
         return;
     }
-    stampCardsContainer.innerHTML = ''; // 一旦クリア
-    stampPoints.forEach(point => {
+    dom.stampCardsContainer.innerHTML = ''; // 一旦クリア
+    state.stampPoints.forEach(point => {
         const card = document.createElement('div');
         card.className = 'stamp-card';
         card.id = `card-${point.id}`;
@@ -74,116 +65,213 @@ function createStampCards() {
             </div>
             <p class="hint-text">${point.hint || ''}</p>
             <p class="distance-info" id="distance-${point.id}">距離: ---</p>
-            <!-- クイズセクションを削除し、ボタンを直接配置 -->
-            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>スタンプを押す</button>
+            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>QRコードをスキャン</button>
         `;
-        stampCardsContainer.appendChild(card);
+        dom.stampCardsContainer.appendChild(card);
     });
 }
 
+// localStorageからスタンプポイントの座標データを読み込む
+async function loadStampPoints() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const binId = urlParams.get('bin');
+    let pointsData = null;
+
+    // 1. URLに 'bin' パラメータがあれば、jsonblob.comから設定を読み込む
+    if (binId) {
+        try {
+            console.log(`jsonblob.comから設定を読み込みます (Bin ID: ${binId})`);
+            const response = await fetch(`https://jsonblob.com/api/jsonBlob/${binId}`);
+            if (!response.ok) {
+                throw new Error(`設定データの取得に失敗しました (Status: ${response.status})`);
+            }
+            pointsData = await response.json();
+            console.log("jsonblob.comからスタンプポイントを正常に読み込みました。");
+        } catch (e) {
+            console.error("データ保管庫からのデータ取得または解析に失敗しました。", e);
+            alert("スタンプラリーの設定を読み込めませんでした。URLが正しいか確認してください。");
+        }
+    }
+
+    // 2. URLパラメータがない場合、rally_config.json を試みる
+    if (!pointsData) {
+        try {
+            const response = await fetch('rally_config.json');
+            if (response.ok) {
+                pointsData = await response.json();
+                console.log("設定ファイル `rally_config.json` からスタンプポイントを読み込みました。");
+            }
+        } catch (error) {
+            console.warn("rally_config.json の読み込みに失敗しました。", error);
+        }
+    }
+
+    // 3. それでもデータがなければ、デフォルト設定を使用
+    state.stampPoints = pointsData || defaultStampPoints;
+}
+
 // ページ読み込み時にスタンプの状態をロード
-function loadStampStatus(targetCache) {
-    const storedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+function loadStampStatus() {
+    const storedData = JSON.parse(localStorage.getItem(STAMPED_DATA_STORAGE_KEY)) || {};
     // 既存のキャッシュをクリアしてから新しいデータをコピー
-    Object.keys(targetCache).forEach(key => delete targetCache[key]);
-    Object.assign(targetCache, storedData);
-    updateUI(targetCache);
+    Object.keys(state.stampedDataCache).forEach(key => delete state.stampedDataCache[key]);
+    Object.assign(state.stampedDataCache, storedData);
+    updateUI();
 }
 
 // UIの更新
-function updateUI(stampedData) {
-    const stampedCount = Object.values(stampedData).filter(Boolean).length;
-    stampCountSpan.textContent = `${stampedCount}/${stampPoints.length}`;
+function updateUI() {
+    const stampedCount = Object.values(state.stampedDataCache).filter(Boolean).length;
+    dom.stampCountSpan.textContent = `${stampedCount}/${state.stampPoints.length}`;
 
-    stampPoints.forEach(point => {
+    state.stampPoints.forEach(point => {
         const card = document.getElementById(`card-${point.id}`);
         if (!card) return; // 要素が見つからない場合はスキップ
         const stampIcon = card.querySelector('.stamp-icon');
         const stampBtn = card.querySelector('.stamp-btn');
         
-        if (stampedData[point.id]) {
+        // stampedData[point.id] には画像データ(Base64)が保存されている
+        const stampedImageData = state.stampedDataCache[point.id];
+
+        if (stampedImageData) {
             card.classList.add('stamped');
-            stampIcon.src = `stamp_jpg/${point.stampImage}`;
+            // localStorageに保存された画像データを表示
+            stampIcon.src = stampedImageData;
             stampBtn.disabled = true;
             stampBtn.textContent = 'スタンプ済み';
         } else {
             card.classList.remove('stamped');
             stampIcon.src = 'stamp_jpg/not_stamp.jpg';
-            stampBtn.textContent = 'スタンプを押す';
+            stampBtn.textContent = 'QRコードをスキャン';
         }
     });
 }
 
-// ----------------------------------------------------
-// イベントハンドラ
-// ----------------------------------------------------
-
 // スタンプボタンのクリック処理
-function handleStamp(pointId, stampedDataCache) {
-    const point = stampPoints.find(p => p.id === pointId);
+function handleStamp(pointId, imageData) {
+    const point = state.stampPoints.find(p => p.id === pointId);
+    if (!point) return;
 
-    stampedDataCache[pointId] = true; // メモリ上のキャッシュを更新
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stampedDataCache)); // localStorageも更新
-    updateUI(stampedDataCache);
+    state.stampedDataCache[pointId] = imageData; // メモリ上のキャッシュを更新
+    localStorage.setItem(STAMPED_DATA_STORAGE_KEY, JSON.stringify(state.stampedDataCache)); // localStorageも更新
+    updateUI();
     alert(`おめでとうございます！「${point.name}」のスタンプをゲットしました！`);
     
     // 全てのスタンプが揃ったかチェック
-    const stampedCount = Object.values(stampedDataCache).filter(Boolean).length;
-    if (stampedCount === stampPoints.length) {
+    const stampedCount = Object.values(state.stampedDataCache).filter(Boolean).length;
+    if (stampedCount === state.stampPoints.length) {
         // 0.5秒後にコンプリートモーダルを表示（スタンプUIの更新が見えるように）
         setTimeout(showCompletionModal, 500);
     }
 }
 
-// ----------------------------------------------------
-// モーダル関連の処理
-// ----------------------------------------------------
+// QRコードスキャナーを開始
+function startQrScanner(targetPointId) {
+    dom.qrMessageSpan.textContent = 'カメラをQRコードに向けてください。';
+    dom.qrReaderModal.classList.add('show');
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    // 成功コールバックをラップして引数を渡す
+    const successCallback = (decodedText, decodedResult) => {
+        onScanSuccess(decodedText, targetPointId, decodedResult);
+    };
+    const errorCallback = (error) => {
+        // スキャンエラーはコンソールに出力するが、UIには表示しないことが多い
+        // console.warn(error);
+    };
+
+    state.html5QrCode.start({ facingMode: "environment" }, config, successCallback, errorCallback)
+        .catch(err => {
+            console.error("QRスキャナーの起動に失敗しました。", err);
+            dom.qrMessageSpan.textContent = "カメラの起動に失敗しました。";
+        });
+}
+
+// QRコードスキャナーを停止
+function stopQrScanner() {
+    state.html5QrCode.stop().then(ignore => {
+        // QRスキャナーが正常に停止
+        console.log("QR Scanner stopped.");
+    }).catch(err => {
+        // 停止に失敗した場合（すでに停止している場合など）
+        console.warn("QR Scanner stop failed.", err);
+    });
+    dom.qrReaderModal.classList.remove('show');
+}
+
+// QRコードスキャン成功時の処理
+function onScanSuccess(decodedText, targetPointId) {
+    // スキャンしたQRコードのIDが、ボタンのIDと一致するかチェック
+    if (decodedText === targetPointId) {
+        stopQrScanner();
+        // IDが一致したポイントの画像データを取得
+        const point = state.stampPoints.find(p => p.id === targetPointId);
+        const imageData = point ? point.stampedImageSrc : null;
+
+        if (imageData) {
+            if (imageData === 'default_stamped') {
+                // デフォルトの取得済み画像パスを指定
+                handleStamp(targetPointId, 'stamp_jpg/get.png'); 
+            } else {
+                // 管理者設定の画像を使用
+                handleStamp(targetPointId, imageData);
+            }
+        } else {
+            alert('エラー: スタンプ画像が見つかりませんでした。');
+        }
+    } else {
+        dom.qrMessageSpan.textContent = `違う場所のQRコードです。もう一度試してください。`;
+    }
+}
 
 function showCompletionModal() {
-    completionModal.classList.add('show');
+    dom.completionModal.classList.add('show');
 }
 
 function hideCompletionModal() {
-    completionModal.classList.remove('show');
+    dom.completionModal.classList.remove('show');
 }
 
 // DOMの読み込みが完了したらアプリケーションを初期化
 document.addEventListener('DOMContentLoaded', () => {
     // DOM要素の取得
-    stampCardsContainer = document.getElementById('stamp-cards-container');
-    currentLocationSpan = document.getElementById('current-location');
-    stampCountSpan = document.getElementById('stamp-count');
-    clearButton = document.getElementById('clear-button');
-    completionModal = document.getElementById('completion-modal');
-    modalCloseBtn = document.querySelector('.modal-close-btn');
-
-    // --- 状態管理 ---
-    const stampedDataCache = {}; // スタンプ状態をメモリにキャッシュ
+    dom.stampCardsContainer = document.getElementById('stamp-cards-container');
+    dom.currentLocationSpan = document.getElementById('current-location');
+    dom.stampCountSpan = document.getElementById('stamp-count');
+    dom.clearButton = document.getElementById('clear-button');
+    dom.completionModal = document.getElementById('completion-modal');
+    dom.modalCloseBtn = document.querySelector('.modal-close-btn');
+    dom.qrReaderModal = document.getElementById('qr-reader-modal');
+    dom.qrModalCloseBtn = document.getElementById('qr-modal-close-btn');
+    dom.qrReaderElement = document.getElementById('qr-reader');
+    dom.qrMessageSpan = document.getElementById('qr-message');
+    state.html5QrCode = new Html5Qrcode("qr-reader");
 
     // --- イベントリスナーの設定 ---
 
     // スタンプカードコンテナ
-    stampCardsContainer.addEventListener('click', (event) => {
+    dom.stampCardsContainer.addEventListener('click', (event) => {
         const stampButton = event.target.closest('.stamp-btn');
         if (stampButton && !stampButton.disabled) {
-            const pointId = stampButton.dataset.id;
-            handleStamp(pointId, stampedDataCache);
+            startQrScanner(stampButton.dataset.id);
         }
     });
 
     // リセットボタン
-    clearButton.addEventListener('click', () => {
+    dom.clearButton.addEventListener('click', () => {
         if (confirm('本当にスタンプをリセットしますか？')) {
-            localStorage.removeItem(STORAGE_KEY);
-            loadStampStatus(stampedDataCache); // キャッシュをリロード
+            localStorage.removeItem(STAMPED_DATA_STORAGE_KEY);
+            loadStampStatus(); // キャッシュをリロード
             alert('スタンプをリセットしました。');
         }
     });
 
     // モーダル関連
-    modalCloseBtn.addEventListener('click', hideCompletionModal);
-    completionModal.addEventListener('click', (event) => {
-        if (event.target === completionModal) {
+    dom.modalCloseBtn.addEventListener('click', hideCompletionModal);
+    dom.qrModalCloseBtn.addEventListener('click', stopQrScanner);
+    dom.completionModal.addEventListener('click', (event) => {
+        if (event.target === dom.completionModal) {
             hideCompletionModal();
         }
     });
@@ -192,53 +280,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 位置情報が更新されたときにUIを更新する関数
     function onLocationUpdate(position) {
-        const userPosition = {
+        state.userPosition = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
         };
-        currentLocationSpan.textContent = `緯度: ${userPosition.latitude.toFixed(4)}, 経度: ${userPosition.longitude.toFixed(4)}`;
+        dom.currentLocationSpan.textContent = `緯度: ${state.userPosition.latitude.toFixed(4)}, 経度: ${state.userPosition.longitude.toFixed(4)}`;
+        updateDistancesAndButtons();
+    }
 
-        stampPoints.forEach(point => {
+    // 距離とボタンの状態を更新する
+    function updateDistancesAndButtons() {
+        if (!state.userPosition) return;
+
+        state.stampPoints.forEach(point => {
             const distance = getDistance(
-                userPosition.latitude,
-                userPosition.longitude,
+                state.userPosition.latitude,
+                state.userPosition.longitude,
                 point.latitude,
                 point.longitude
             );
-            
+
             const distanceInfoSpan = document.getElementById(`distance-${point.id}`);
             if (distanceInfoSpan) {
                 distanceInfoSpan.textContent = `距離: ${distance.toFixed(1)} m`;
             }
 
             const stampBtn = document.getElementById(`btn-${point.id}`);
-            if (stampBtn) {
-                // スタンプ済みならボタンは常に無効
-                if (stampedDataCache[point.id]) {
-                    stampBtn.disabled = true;
-                } else {
-                    // 未スタンプなら距離に応じて有効/無効を切り替え
-                    stampBtn.disabled = (distance > stampThreshold);
-                }
+            // スタンプ済み、または距離がしきい値より遠い場合はボタンを無効化
+            if (stampBtn && !state.stampedDataCache[point.id]) {
+                stampBtn.disabled = (distance > stampThreshold);
             }
         });
     }
 
     // 位置情報の取得に失敗したときの処理
     function onLocationError(error) {
+        state.userPosition = null;
         console.error("位置情報の取得に失敗しました: ", error);
-        currentLocationSpan.textContent = "位置情報が取得できませんでした。";
-        document.querySelectorAll('.stamp-btn').forEach(btn => btn.disabled = true);
+        dom.currentLocationSpan.textContent = "位置情報が取得できませんでした。";
+        // すべての未取得スタンプボタンを無効化
+        state.stampPoints.forEach(point => {
+            const stampBtn = document.getElementById(`btn-${point.id}`);
+            if (stampBtn && !state.stampedDataCache[point.id]) {
+                stampBtn.disabled = true;
+            }
+        });
     }
 
     // アプリケーションの初期化
-    createStampCards();
-    loadStampStatus(stampedDataCache);
+    async function initializeApp() {
+        await loadStampPoints(); // 設定ファイルの読み込みを待つ
+        createStampCards();
+        loadStampStatus();
 
-    // 位置情報の監視を開始
-    if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition(onLocationUpdate, onLocationError, { enableHighAccuracy: true });
-    } else {
-        onLocationError(new Error("Geolocation is not supported by this browser."));
+        // 位置情報の監視を開始
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(onLocationUpdate, onLocationError, { enableHighAccuracy: true });
+        } else {
+            onLocationError(new Error("Geolocation is not supported by this browser."));
+        }
     }
+    initializeApp();
 });

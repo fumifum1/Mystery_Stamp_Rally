@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ページ - スタンプ座標設定</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 管理者ページ専用スタイル */
+        .admin-form-group {
+            margin-bottom: 15px;
+        }
+        .admin-form-group label {
+            display: inline-block;
+            width: 60px;
+            font-weight: bold;
+            vertical-align: top; /* textareaとラベルの縦位置を揃える */
+            padding-top: 8px; /* input/textareaのpaddingと合わせる */
+        }
+        .admin-form-group input,
+        .admin-form-group textarea {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #7f8c8d;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            width: calc(100% - 80px);
+            box-sizing: border-box; /* paddingとborderをwidthに含める */
+            font-family: inherit;
+        }
+        .admin-form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .qr-code-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff;
+            display: inline-block;
+            border-radius: 5px;
+        }
+        /* admin.jsで生成するヘッダー用 */
+        .stamp-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .stamp-card-header .card-title {
+            margin: 0; /* 元のスタイルを上書き */
+        }
+        .delete-btn {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            width: auto; /* .btnのwidth:100%を上書き */
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">管理者ページ</h1>
+            <p class="status-message">スタンプポイントの座標とQRコードを管理します。</p>
+        </header>
+
+        <main>
+            <div id="admin-stamp-points-container">
+                <!-- JavaScriptでフォームを生成 -->
+            </div>
+            <div class="button-container">
+                <button id="add-point-button" class="btn btn-secondary">スタンプポイントを追加</button>
+            </div>
+            <div class="button-container">
+                <button id="save-button" class="btn btn-primary">共有URLを生成</button>
+                <a href="mspr.html" target="_blank" class="btn btn-link" style="margin-top: 10px;">スタンプラリーページを確認</a>
+            </div>
+            <div class="admin-form-group" style="margin-top: 20px;">
+                <label for="url-output" style="width: 100%; display: block; margin-bottom: 5px;">生成された共有URL:</label>
+                <textarea id="url-output" readonly style="min-height: 100px; width: 100%;" placeholder="ここに共有用のURLが生成されます..."></textarea>
+            </div>
+            <div id="url-qrcode-container" class="qr-code-container" style="display: none; margin-top: 20px; text-align: center;">
+                <p style="color: #ecf0f1; margin-bottom: 10px;">↓参加者に共有するQRコード</p>
+                <div id="url-qrcode"></div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- QRコード生成ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+<style>
+    .btn-link {
+        text-decoration: none;
+        display: block;
+        box-sizing: border-box;
+        color: #fff;
+        text-align: center;
+    }
+</style>
+</html>

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -28,7 +29,6 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
 
     <!-- Completion Modal -->
     <div id="completion-modal" class="modal">
@@ -40,5 +40,18 @@
             <img src="https://via.placeholder.com/400x300.png?text=Congratulations!" alt="お祝いの画像" class="completion-image">
         </div>
     </div>
+
+    <!-- QR Reader Modal -->
+    <div id="qr-reader-modal" class="modal">
+        <div class="modal-content">
+            <span id="qr-modal-close-btn" class="modal-close-btn">&times;</span>
+            <h2>QRコードをスキャン</h2>
+            <p id="qr-message">カメラをQRコードに向けてください。</p>
+            <div id="qr-reader" style="width: 100%;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
