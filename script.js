@@ -248,10 +248,10 @@ function onScanSuccess(decodedText, targetPointId) {
 function showCompletionModal() {
     const overlay = document.getElementById('completion-overlay');
     const messageEl = document.getElementById('completion-message');
-    
+
     messageEl.textContent = state.rallyConfig.completionMessage || 'すべてのスタンプを集めました！おめでとうございます！';
     overlay.classList.add('show');
-    startConfetti();
+    startConfetti(); // モーダル表示と同時に紙吹雪を開始
 }
 
 function hideCompletionModal() {
@@ -265,11 +265,12 @@ let confettiAnimationId;
 let confettiIntervalId;
 
 function startConfetti() {
-    const canvas = document.getElementById('confetti-canvas');
+    const canvas = document.getElementById('confetti-canvas'); // この時点で canvas は表示されている
+    if (!canvas) return; // 念のため存在チェック
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
     const confettiPieces = [];
     const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71'];
     const gravity = 0.1;
@@ -332,11 +333,13 @@ function startConfetti() {
 }
 
 function stopConfetti() {
-    cancelAnimationFrame(confettiAnimationId);
-    clearInterval(confettiIntervalId);
+    if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+    if (confettiIntervalId) clearInterval(confettiIntervalId);
     const canvas = document.getElementById('confetti-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
 // DOMの読み込みが完了したらアプリケーションを初期化
@@ -374,10 +377,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // モーダル関連
     // dom.qrScannerPage内の閉じるボタンにイベントリスナーを設定
-    const qrScannerCloseBtn = dom.qrScannerPage.querySelector('.close-btn');
     dom.completionTriggerBtn.addEventListener('click', showCompletionModal);
     dom.completionBackBtn.addEventListener('click', hideCompletionModal);
-    qrScannerCloseBtn.addEventListener('click', stopQrScanner);
+    dom.qrScannerPage.querySelector('.close-btn').addEventListener('click', stopQrScanner);
+
 
     // --- アプリケーションのメインロジック ---
 
@@ -444,4 +447,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     initializeApp();
+
 });
