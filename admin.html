@@ -4,68 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理者ページ - スタンプ座標設定</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/fumifum1/main/main/jpg/ico.ico">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* 管理者ページ専用スタイル */
-        .admin-form-group {
-            margin-bottom: 15px;
-        }
-        .admin-form-group label {
-            display: inline-block;
-            width: 60px;
-            font-weight: bold;
-            vertical-align: top; /* textareaとラベルの縦位置を揃える */
-            padding-top: 8px; /* input/textareaのpaddingと合わせる */
-        }
-        .admin-form-group input,
-        .admin-form-group textarea {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #7f8c8d;
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            width: calc(100% - 80px);
-            box-sizing: border-box; /* paddingとborderをwidthに含める */
-            font-family: inherit;
-        }
-        .admin-form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .qr-code-container {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #fff;
-            display: inline-block;
-            border-radius: 5px;
-        }
-        /* admin.jsで生成するヘッダー用 */
-        .stamp-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .stamp-card-header .card-title {
-            margin: 0; /* 元のスタイルを上書き */
-        }
-        .delete-btn {
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            width: auto; /* .btnのwidth:100%を上書き */
-            background-color: #e74c3c;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-secondary {
-            background-color: #27ae60;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -75,6 +18,11 @@
         </header>
 
         <main>
+            <div class="admin-form-group">
+                <label for="completion-message" style="width: 100%; display: block; margin-bottom: 5px;">コンプリート時メッセージ:</label>
+                <textarea id="completion-message" placeholder="すべてのスタンプを集めた参加者へのメッセージを入力します。"></textarea>
+            </div>
+            <hr style="border-color: #7f8c8d; margin: 20px 0;">
             <div id="admin-stamp-points-container">
                 <!-- JavaScriptでフォームを生成 -->
             </div>
@@ -95,19 +43,12 @@
             </div>
         </main>
     </div>
-    
+    <footer>
+        &copy; 2025 Synapse Creations. Sep.Stamprally_ver2.0.0 <a href="https://fumifum1.github.io/main/index.html">Creator</a>
+    </footer>   
     <!-- QRコード生成ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="admin.js"></script>
 </body>
-<style>
-    .btn-link {
-        text-decoration: none;
-        display: block;
-        box-sizing: border-box;
-        color: #fff;
-        text-align: center;
-    }
-</style>
 </html>

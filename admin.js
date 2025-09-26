@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pointElement.innerHTML = `
                 <div class="stamp-card-header">
                     <h3 class="card-title">ポイントID: ${point.id}</h3>
-                    <button class="delete-btn" data-index="${index}">削除</button>
+                    <button class="delete-btn" data-index="${index}" title="このポイントを削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
                 </div>
                 <div class="admin-form-group">
                     <label for="name-${index}">名前:</label>
@@ -180,14 +180,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
  
-            // アップロードするデータには画像(stampedImageSrc)もすべて含める
-            const dataToUpload = currentStampPoints;
-            if (!dataToUpload || dataToUpload.length === 0) {
+            // コンプリートメッセージを取得
+            const completionMessage = document.getElementById('completion-message').value;
+
+            // アップロードするデータオブジェクトを作成
+            const dataToUpload = {
+                completionMessage: completionMessage,
+                points: currentStampPoints
+            };
+            if (!dataToUpload.points || dataToUpload.points.length === 0) {
                 throw new Error("スタンプポイントが1つもありません。");
             }
 
             // 画像が設定されていないポイントには、デフォルト画像を使用する目印を付ける
-            dataToUpload.forEach(point => {
+            dataToUpload.points.forEach(point => {
                 if (!point.stampedImageSrc) {
                     point.stampedImageSrc = 'default_stamped';
                 }

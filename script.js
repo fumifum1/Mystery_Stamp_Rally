@@ -19,7 +19,7 @@ const defaultStampPoints = [
     }
 ];
 
-const stampThreshold = 50; // 50メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
+const stampThreshold = 15; // 15メートルを範囲とします。GPSの誤差を考慮して少し広めに設定。
 const STAMPED_DATA_STORAGE_KEY = 'stampedData';
 
 // アプリケーションの状態を管理するオブジェクト
@@ -107,7 +107,13 @@ async function loadStampPoints() {
     }
 
     // 3. それでもデータがなければ、デフォルト設定を使用
-    state.stampPoints = pointsData || defaultStampPoints;
+    if (pointsData && pointsData.points) {
+        state.rallyConfig = pointsData;
+        state.stampPoints = pointsData.points;
+    } else {
+        state.rallyConfig = { completionMessage: "すべてのスタンプを集めました！おめでとうございます！" };
+        state.stampPoints = pointsData || defaultStampPoints; // 旧形式のデータまたはデフォルト
+    }
 }
 
 // ページ読み込み時にスタンプの状態をロード
@@ -226,11 +232,75 @@ function onScanSuccess(decodedText, targetPointId) {
 }
 
 function showCompletionModal() {
-    dom.completionModal.classList.add('show');
+    const overlay = document.getElementById('completion-overlay');
+    const messageEl = document.getElementById('completion-message');
+    
+    messageEl.textContent = state.rallyConfig.completionMessage || 'すべてのスタンプを集めました！おめでとうございます！';
+    overlay.classList.add('show');
+    startConfetti();
 }
 
 function hideCompletionModal() {
-    dom.completionModal.classList.remove('show');
+    const overlay = document.getElementById('completion-overlay');
+    overlay.classList.remove('show');
+    stopConfetti();
+}
+
+// --- Confetti Animation ---
+let confettiAnimationId;
+
+function startConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const confettiPieces = [];
+    const pieceCount = 200;
+    const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71'];
+
+    for (let i = 0; i < pieceCount; i++) {
+        confettiPieces.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 10 + 5,
+            speed: Math.random() * 5 + 2,
+            rotation: Math.random() * 360,
+            rotationSpeed: Math.random() * 10 - 5,
+            color: colors[Math.floor(Math.random() * colors.length)]
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        confettiPieces.forEach(piece => {
+            piece.y += piece.speed;
+            piece.rotation += piece.rotationSpeed;
+
+            if (piece.y > canvas.height) {
+                piece.y = -20;
+                piece.x = Math.random() * canvas.width;
+            }
+
+            ctx.save();
+            ctx.translate(piece.x, piece.y);
+            ctx.rotate(piece.rotation * Math.PI / 180);
+            ctx.fillStyle = piece.color;
+            ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
+            ctx.restore();
+        });
+
+        confettiAnimationId = requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+function stopConfetti() {
+    cancelAnimationFrame(confettiAnimationId);
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 // DOMの読み込みが完了したらアプリケーションを初期化
@@ -240,8 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.currentLocationSpan = document.getElementById('current-location');
     dom.stampCountSpan = document.getElementById('stamp-count');
     dom.clearButton = document.getElementById('clear-button');
-    dom.completionModal = document.getElementById('completion-modal');
-    dom.modalCloseBtn = document.querySelector('.modal-close-btn');
+    dom.completionBackBtn = document.getElementById('completion-back-btn');
     dom.qrReaderModal = document.getElementById('qr-reader-modal');
     dom.qrModalCloseBtn = document.getElementById('qr-modal-close-btn');
     dom.qrReaderElement = document.getElementById('qr-reader');
@@ -268,13 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // モーダル関連
-    dom.modalCloseBtn.addEventListener('click', hideCompletionModal);
+    dom.completionBackBtn.addEventListener('click', hideCompletionModal);
     dom.qrModalCloseBtn.addEventListener('click', stopQrScanner);
-    dom.completionModal.addEventListener('click', (event) => {
-        if (event.target === dom.completionModal) {
-            hideCompletionModal();
-        }
-    });
 
     // --- アプリケーションのメインロジック ---
 
