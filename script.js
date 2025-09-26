@@ -108,17 +108,14 @@ async function loadStampPoints() {
     }
 
     // 3. それでもデータがなければ、デフォルト設定を使用
-    if (pointsData && pointsData.points) {
+    if (pointsData && pointsData.points && Array.isArray(pointsData.points)) {
+        // 新形式のデータ (completionMessage と points を含むオブジェクト)
         state.rallyConfig = pointsData;
         state.stampPoints = pointsData.points;
     } else {
+        // 旧形式のデータ (ポイント配列のみ) またはデフォルトデータ
         state.rallyConfig = { completionMessage: "すべてのスタンプを集めました！おめでとうございます！" };
-        // pointsDataがオブジェクト（旧形式）か配列（デフォルト）かをチェック
-        if (Array.isArray(pointsData)) {
-            state.stampPoints = pointsData;
-        } else {
-            state.stampPoints = defaultStampPoints;
-        }
+        state.stampPoints = Array.isArray(pointsData) ? pointsData : defaultStampPoints;
     }
 }
 
