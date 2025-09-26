@@ -154,6 +154,14 @@ function updateUI() {
             stampBtn.textContent = 'QRコードをスキャン';
         }
     });
+
+    // コンプリートボタンの表示/非表示を切り替え
+    const allPointsStamped = state.stampPoints.length > 0 && state.stampPoints.every(p => state.stampedDataCache[p.id]);
+    if (allPointsStamped) {
+        dom.completionTriggerBtn.style.display = 'block';
+    } else {
+        dom.completionTriggerBtn.style.display = 'none';
+    });
 }
 
 // スタンプボタンのクリック処理
@@ -165,14 +173,6 @@ function handleStamp(pointId, imageData) {
     localStorage.setItem(stampedDataStorageKey, JSON.stringify(state.stampedDataCache)); // localStorageも更新
     updateUI();
     alert(`おめでとうございます！「${point.name}」のスタンプをゲットしました！`);
-    
-    // 全てのスタンプが揃ったかチェック
-    const allPointsStamped = state.stampPoints.every(p => state.stampedDataCache[p.id]);
-
-    if (allPointsStamped && state.stampPoints.length > 0) {
-        // 0.5秒後にコンプリートモーダルを表示（スタンプUIの更新が見えるように）
-        setTimeout(showCompletionModal, 500);
-    }
 }
 
 // QRコードスキャナーを開始
@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.currentLocationSpan = document.getElementById('current-location');
     dom.stampCountSpan = document.getElementById('stamp-count');
     dom.clearButton = document.getElementById('clear-button');
+    dom.completionTriggerBtn = document.getElementById('completion-trigger-btn');
     dom.completionBackBtn = document.getElementById('completion-back-btn');
     dom.qrScannerPage = document.getElementById('qr-scanner-page');
     dom.qrReaderElement = document.getElementById('qr-reader');
@@ -366,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // モーダル関連
     // dom.qrScannerPage内の閉じるボタンにイベントリスナーを設定
     const qrScannerCloseBtn = dom.qrScannerPage.querySelector('.close-btn');
+    dom.completionTriggerBtn.addEventListener('click', showCompletionModal);
     dom.completionBackBtn.addEventListener('click', hideCompletionModal);
     qrScannerCloseBtn.addEventListener('click', stopQrScanner);
 
