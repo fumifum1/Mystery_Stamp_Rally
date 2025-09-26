@@ -355,6 +355,7 @@ footer a:hover {
 }
 
 /* コンプリートメッセージ入力欄の幅を調整 */
-#completion-message {
+/* 管理者ページのコンプリートメッセージ入力欄 */
+textarea#completion-message {
     width: 100%;
 }
