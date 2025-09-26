@@ -158,7 +158,7 @@ function updateStampCardsUI() {
 
 // UIの更新（リファクタリング）
 function updateAllUI() {
-    updateUI();
+    updateStampCardsUI();
     updateCompletionButton();
 }
 
