@@ -147,16 +147,25 @@ body {
 }
 
 .btn-success {
-    background: linear-gradient(145deg, #f1c40f, #f39c12); /* ゴールドのグラデーション */
+    /* 動くグラデーションの背景 */
+    background: linear-gradient(120deg, #f1c40f, #e67e22, #e74c3c, #3498db, #2ecc71, #f1c40f);
+    background-size: 200% 200%;
     color: #fff;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 文字に影を追加 */
     /* 影とアニメーションを追加 */
-    box-shadow: 0 4px #e67e22;
-    animation: pulse 2s infinite;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite, gradient-animation 8s ease infinite;
 }
 
 .btn-success:hover {
-    background: linear-gradient(145deg, #f39c12, #f1c40f); /* ホバー時のグラデーション */
+    animation-play-state: paused; /* ホバー中はアニメーションを一時停止 */
+}
+
+/* グラデーションを動かすためのアニメーション */
+@keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 @keyframes pulse {
