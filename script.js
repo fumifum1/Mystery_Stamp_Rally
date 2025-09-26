@@ -250,6 +250,7 @@ function hideCompletionModal() {
 
 // --- Confetti Animation ---
 let confettiAnimationId;
+let confettiIntervalId;
 
 function startConfetti() {
     const canvas = document.getElementById('confetti-canvas');
@@ -257,58 +258,70 @@ function startConfetti() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let confettiPieces = [];
-    const pieceCount = 150;
+    const confettiPieces = [];
     const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71'];
     const gravity = 0.1;
-    const drag = 0.98;
 
-    function createConfetti() {
-        confettiPieces = [];
-        for (let i = 0; i < pieceCount; i++) {
-            const angle = Math.random() * Math.PI * 2; // 360度ランダムな角度
-            const speed = Math.random() * 8 + 4; // 初速
+    function launchConfetti() {
+        const burstCount = 50; // 1回の打ち上げ数
+        const angle = Math.random() * 40 + 70; // 70度から110度の範囲で打ち上げ
+        const angleRad = angle * (Math.PI / 180);
+
+        for (let i = 0; i < burstCount; i++) {
+            const speed = Math.random() * 10 + 5; // 初速
             confettiPieces.push({
                 x: canvas.width / 2,
                 y: canvas.height, // 画面下中央から
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed * -1, // 上向きの力
+                vx: (Math.random() - 0.5) * 10, // 横方向のばらつき
+                vy: Math.sin(angleRad) * speed * -1, // 上向きの力
                 size: Math.random() * 8 + 4,
                 rotation: Math.random() * 360,
                 rotationSpeed: Math.random() * 10 - 5,
-                color: colors[Math.floor(Math.random() * colors.length)]
+                color: colors[Math.floor(Math.random() * colors.length)],
+                opacity: 1
             });
         }
     }
 
     function animate() {
+        confettiAnimationId = requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        confettiPieces.forEach(piece => {
+        for (let i = confettiPieces.length - 1; i >= 0; i--) {
+            const piece = confettiPieces[i];
+
             // 物理演算
             piece.vy += gravity;
-            piece.vx *= drag;
-            piece.vy *= drag;
             piece.x += piece.vx;
             piece.y += piece.vy;
             piece.rotation += piece.rotationSpeed;
+            piece.opacity -= 0.005;
+
+            // 画面外に出るか、透明になったら消す
+            if (piece.y > canvas.height || piece.opacity <= 0) {
+                confettiPieces.splice(i, 1);
+                continue;
+            }
 
             ctx.save();
             ctx.translate(piece.x, piece.y);
             ctx.rotate(piece.rotation * Math.PI / 180);
+            ctx.globalAlpha = piece.opacity;
             ctx.fillStyle = piece.color;
             ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.7);
             ctx.restore();
-        });
-
-        confettiAnimationId = requestAnimationFrame(animate);
+        }
     }
-    createConfetti();
-    animate(); // アニメーション開始
+    
+    // アニメーションを開始し、一定間隔で紙吹雪を打ち上げる
+    animate();
+    launchConfetti(); // 最初に1回打ち上げ
+    confettiIntervalId = setInterval(launchConfetti, 600); // 0.6秒ごとに打ち上げ
 }
 
 function stopConfetti() {
     cancelAnimationFrame(confettiAnimationId);
+    clearInterval(confettiIntervalId);
     const canvas = document.getElementById('confetti-canvas');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);

@@ -235,7 +235,7 @@ body {
 }
 
 .completion-title {
-    font-size: 15vw; /* 画面幅に応じてサイズが変わるように変更 */
+    font-size: clamp(40px, 15vw, 90px); /* 最小40px, 基本15vw, 最大90px */
     font-weight: 700;
     color: #fff;
     text-shadow: 0 0 15px #3498db, 0 0 25px #3498db;
@@ -252,13 +252,6 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
-}
-
-/* 画面幅が600pxより大きい場合の最大フォントサイズを設定 */
-@media (min-width: 600px) {
-    .completion-title {
-        font-size: 90px; /* 15vw * 600px = 90px */
-    }
 }
 
 /* フッター */
