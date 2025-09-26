@@ -256,6 +256,7 @@ body {
 }
 
 .completion-overlay.show {
+    display: flex; /* display:noneを上書きして表示する */
     opacity: 1;
     pointer-events: auto;
 }
