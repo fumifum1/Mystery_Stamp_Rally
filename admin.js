@@ -175,9 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isNaN(point.latitude) || isNaN(point.longitude)) {
                     throw new Error(`ポイントID「${point.id}」の座標に無効な値が入力されています。`);
                 }
-                if (!point.stampedImageSrc) {
-                    throw new Error(`ポイント「${point.name}」の達成画像が設定されていません。`);
-                }
             });
  
             // コンプリートメッセージを取得
