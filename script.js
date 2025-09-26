@@ -113,7 +113,12 @@ async function loadStampPoints() {
         state.stampPoints = pointsData.points;
     } else {
         state.rallyConfig = { completionMessage: "すべてのスタンプを集めました！おめでとうございます！" };
-        state.stampPoints = pointsData || defaultStampPoints; // 旧形式のデータまたはデフォルト
+        // pointsDataがオブジェクト（旧形式）か配列（デフォルト）かをチェック
+        if (Array.isArray(pointsData)) {
+            state.stampPoints = pointsData;
+        } else {
+            state.stampPoints = defaultStampPoints;
+        }
     }
 }
 
