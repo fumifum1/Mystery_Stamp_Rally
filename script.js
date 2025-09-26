@@ -263,17 +263,17 @@ function startConfetti() {
     const gravity = 0.1;
 
     function launchConfetti() {
-        const burstCount = 50; // 1回の打ち上げ数
-        const angle = Math.random() * 40 + 70; // 70度から110度の範囲で打ち上げ
-        const angleRad = angle * (Math.PI / 180);
+        const burstCount = 70; // 1回の打ち上げ数を増やす
 
         for (let i = 0; i < burstCount; i++) {
-            const speed = Math.random() * 10 + 5; // 初速
+            const angle = (Math.random() * 60 + 60) * (Math.PI / 180); // 60度から120度の範囲で打ち上げ
+            const speed = Math.random() * 12 + 6; // 初速を上げる
+
             confettiPieces.push({
                 x: canvas.width / 2,
                 y: canvas.height, // 画面下中央から
-                vx: (Math.random() - 0.5) * 10, // 横方向のばらつき
-                vy: Math.sin(angleRad) * speed * -1, // 上向きの力
+                vx: (Math.random() - 0.5) * 15, // 横方向のばらつきを大きく
+                vy: Math.sin(angle) * speed * -1, // 上向きの力
                 size: Math.random() * 8 + 4,
                 rotation: Math.random() * 360,
                 rotationSpeed: Math.random() * 10 - 5,
@@ -316,7 +316,7 @@ function startConfetti() {
     // アニメーションを開始し、一定間隔で紙吹雪を打ち上げる
     animate();
     launchConfetti(); // 最初に1回打ち上げ
-    confettiIntervalId = setInterval(launchConfetti, 600); // 0.6秒ごとに打ち上げ
+    confettiIntervalId = setInterval(launchConfetti, 500); // 0.5秒ごとに打ち上げ
 }
 
 function stopConfetti() {
