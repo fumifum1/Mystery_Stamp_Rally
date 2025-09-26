@@ -279,7 +279,7 @@ function startConfetti() {
         const burstCount = 70; // 1回の打ち上げ数を増やす
 
         for (let i = 0; i < burstCount; i++) {
-            const angle = (Math.random() * 60 + 60) * (Math.PI / 180); // 60度から120度の範囲で打ち上げ
+            const angle = (Math.random() * 80 + 50) * (Math.PI / 180); // 50度から130度の範囲で打ち上げ
             const speed = Math.random() * 12 + 6; // 初速を上げる
 
             confettiPieces.push({
@@ -287,7 +287,7 @@ function startConfetti() {
                 y: canvas.height, // 画面下中央から
                 vx: (Math.random() - 0.5) * 15, // 横方向のばらつきを大きく
                 vy: Math.sin(angle) * speed * -1, // 上向きの力
-                size: Math.random() * 8 + 4,
+                size: Math.random() * 10 + 5,
                 rotation: Math.random() * 360,
                 rotationSpeed: Math.random() * 10 - 5,
                 color: colors[Math.floor(Math.random() * colors.length)],

@@ -263,6 +263,9 @@ body {
 
 .completion-content {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     z-index: 1002;
     margin-top: 10vh; /* 画面の上から少し離して配置 */
 }
@@ -275,7 +278,8 @@ body {
     margin: 0;
 }
 
-.completion-message {
+.completion-message {    
+    text-align: center;
     font-size: 1.2rem;
     color: #ecf0f1;
     margin: 20px 0 40px;
