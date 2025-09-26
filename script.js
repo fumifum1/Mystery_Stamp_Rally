@@ -167,8 +167,9 @@ function handleStamp(pointId, imageData) {
     alert(`おめでとうございます！「${point.name}」のスタンプをゲットしました！`);
     
     // 全てのスタンプが揃ったかチェック
-    const stampedCount = Object.values(state.stampedDataCache).filter(Boolean).length;
-    if (stampedCount === state.stampPoints.length) {
+    const allPointsStamped = state.stampPoints.every(p => state.stampedDataCache[p.id]);
+
+    if (allPointsStamped && state.stampPoints.length > 0) {
         // 0.5秒後にコンプリートモーダルを表示（スタンプUIの更新が見えるように）
         setTimeout(showCompletionModal, 500);
     }
