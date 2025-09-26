@@ -129,7 +129,7 @@ function loadStampStatus() {
 }
 
 // UIの更新
-function updateUI() {
+function updateStampCardsUI() {
     const stampedCount = Object.values(state.stampedDataCache).filter(Boolean).length;
     dom.stampCountSpan.textContent = `${stampedCount}/${state.stampPoints.length}`;
 
@@ -154,13 +154,11 @@ function updateUI() {
             stampBtn.textContent = 'QRコードをスキャン';
         }
     });
-
-    updateCompletionButton();
 }
 
 // UIの更新（リファクタリング）
 function updateAllUI() {
-    updateUI();
+    updateStampCardsUI();
     updateCompletionButton();
 }
 
