@@ -247,8 +247,6 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
-    overflow-y: auto; /* コンテンツがはみ出た場合にスクロールを許可 */
-    padding: 20px; /* コンテンツの周りに余白を作る */
     text-align: center;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
@@ -269,6 +267,12 @@ body {
     flex-direction: column;
     align-items: center;
     z-index: 2; /* canvasより手前に表示 */
+    /* 追加・修正 */
+    max-width: 90%; /* 画面幅の90%を超えないようにする */
+    padding: 20px; /* コンテンツの内側に余白 */
+    box-sizing: border-box; /* paddingを含めて幅を計算 */
+    background-color: rgba(0, 0, 0, 0.5); /* 背景を追加して見やすくする */
+    border-radius: 10px;
 }
 
 /* 紙吹雪用のcanvasを画面全体に広げ、コンテンツの背面に配置 */
