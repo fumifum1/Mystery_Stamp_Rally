@@ -112,9 +112,14 @@ async function loadStampPoints() {
         // 新形式のデータ (completionMessage と points を含むオブジェクト)
         state.rallyConfig = pointsData;
         state.stampPoints = pointsData.points;
+        // タイトルを更新
+        if (state.rallyConfig.title) {
+            dom.titleElement.textContent = state.rallyConfig.title;
+            document.title = state.rallyConfig.title; // ブラウザのタブのタイトルも変更
+        }
     } else {
         // 旧形式のデータ (ポイント配列のみ) またはデフォルトデータ
-        state.rallyConfig = { completionMessage: "すべてのスタンプを集めました！おめでとうございます！" };
+        state.rallyConfig = { title: "Mystery Stamp Rally", completionMessage: "すべてのスタンプを集めました！おめでとうございます！" };
         state.stampPoints = Array.isArray(pointsData) ? pointsData : defaultStampPoints;
     }
 }
@@ -360,6 +365,7 @@ function stopConfetti() {
 // DOMの読み込みが完了したらアプリケーションを初期化
 document.addEventListener('DOMContentLoaded', () => {
     // DOM要素の取得
+    dom.titleElement = document.querySelector('.container .title');
     dom.stampCardsContainer = document.getElementById('stamp-cards-container');
     dom.currentLocationSpan = document.getElementById('current-location');
     dom.stampCountSpan = document.getElementById('stamp-count');

@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('admin-stamp-points-container');
     const saveButton = document.getElementById('save-button');
-    const urlOutput = document.getElementById('url-output');
-    const urlQrcodeElement = document.getElementById('url-qrcode');
     const addButton = document.getElementById('add-point-button');
+    // モーダル関連の要素
+    const shareModal = document.getElementById('share-modal');
+    const shareModalCloseBtn = document.getElementById('share-modal-close-btn');
+    const modalUrlOutput = document.getElementById('modal-url-output');
+    const modalQrcodeElement = document.getElementById('modal-qrcode');
+    const copyUrlBtn = document.getElementById('copy-url-btn');
+    const downloadQrBtn = document.getElementById('download-qr-btn');
  
     // 画像設定の定数
     const MAX_IMAGE_WIDTH = 400; // 画像の最大幅
@@ -46,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pointElement.className = 'stamp-card';
             pointElement.innerHTML = `
                 <div class="stamp-card-header">
-                    <h3 class="card-title">ポイントID: ${point.id}</h3>
+                    <h3 class="card-title">ポイント ${index + 1}</h3>
                     <button class="delete-btn" data-index="${index}" title="このポイントを削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
                 </div>
                 <div class="admin-form-group">
@@ -73,10 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="image-upload-${index}">達成画像:</label>
                     <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}">
                 </div>
-                <p>画像プレビュー（スタンプ達成時に表示されます）</p>
-                <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
-                <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
-                <div class="qr-code-container" id="qrcode-${index}"></div>
+                <div class="preview-container">
+                    <p>画像プレビュー（スタンプ達成時に表示されます）</p>
+                    <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
+                    <div class="qr-code-container" id="qrcode-${index}">
+                    </div>
+                </div>
             `;
             container.appendChild(pointElement);
  
@@ -135,7 +145,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     const qrText = point.id; // QRコードには常にIDのみを格納
                     // 念のため、生成前に中身をクリア
                     qrCodeElement.innerHTML = '';
-                    new QRCode(qrCodeElement, { text: qrText, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.H });
+                    
+                    const qrCode = new QRCodeStyling({
+                        width: 150,
+                        height: 150,
+                        data: qrText,
+                        margin: 0,
+                        qrOptions: { errorCorrectionLevel: 'H' },
+                        dotsOptions: {
+                            type: 'dots',
+                            color: '#3498db',
+                            gradient: {
+                                type: 'linear',
+                                rotation: 90,
+                                colorStops: [{ offset: 0, color: '#3498db' }, { offset: 1, color: '#2c3e50' }]
+                            }
+                        },
+                        cornersSquareOptions: { type: 'dot', color: '#2980b9' },
+                        cornersDotOptions: { type: 'dot', color: '#2980b9' },
+                        backgroundOptions: { color: '#ffffff' },
+                        imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
+                        // 中央のテキストは画像として生成して埋め込む
+                        image: createTextDataUrl(`SP${index + 1}`)
+                    });
+
+                    qrCode.append(qrCodeElement);
                 }
             }, 0);
         });
@@ -155,6 +189,53 @@ document.addEventListener('DOMContentLoaded', () => {
         renderUI();
     });
  
+    // 共有モーダルを閉じるイベント
+    shareModalCloseBtn.addEventListener('click', () => {
+        shareModal.classList.remove('show');
+    });
+
+    // URLコピーボタンのイベント
+    copyUrlBtn.addEventListener('click', () => {
+        const urlToCopy = modalUrlOutput.value;
+        if (!urlToCopy) return;
+
+        navigator.clipboard.writeText(urlToCopy).then(() => {
+            // 成功フィードバック
+            const originalIcon = copyUrlBtn.innerHTML;
+            copyUrlBtn.innerHTML = '✓'; // チェックマークに変更
+            copyUrlBtn.title = 'コピーしました！';
+            copyUrlBtn.style.backgroundColor = '#27ae60'; // 緑色に変更
+
+            setTimeout(() => {
+                copyUrlBtn.innerHTML = originalIcon;
+                copyUrlBtn.title = 'URLをクリップボードにコピー';
+                copyUrlBtn.style.backgroundColor = ''; // 元の色に戻す
+            }, 2000); // 2秒後に元に戻す
+        }).catch(err => {
+            console.error('クリップボードへのコピーに失敗しました:', err);
+            alert('コピーに失敗しました。');
+        });
+    });
+
+    // QRコードダウンロードボタンのイベント
+    downloadQrBtn.addEventListener('click', () => {
+        const qrCanvas = modalQrcodeElement.querySelector('canvas');
+        const qrImg = modalQrcodeElement.querySelector('img');
+
+        if (qrCanvas) {
+            const link = document.createElement('a');
+            link.download = 'rally-qrcode.png';
+            link.href = qrCanvas.toDataURL('image/png');
+            link.click();
+        } else if (qrImg) {
+            // qrcode.jsがimgタグを生成した場合のフォールバック
+            const link = document.createElement('a');
+            link.download = 'rally-qrcode.png';
+            link.href = qrImg.src;
+            link.click();
+        }
+    });
+
     container.addEventListener('click', (event) => {
         if (event.target.matches('.delete-btn')) {
             const index = parseInt(event.target.dataset.index, 10);
@@ -230,10 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
  
             // コンプリートメッセージを取得
+            const rallyTitle = document.getElementById('rally-title').value;
             const completionMessage = document.getElementById('completion-message').value;
 
             // アップロードするデータオブジェクトを作成
             const dataToUpload = {
+                title: rallyTitle,
                 completionMessage: completionMessage,
                 points: currentStampPoints
             };
@@ -277,20 +360,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
             const fullUrl = `${baseUrl}?bin=${binId}`;
  
-            urlOutput.value = fullUrl;
-            urlOutput.style.backgroundColor = '#dff9fb';
- 
-            urlQrcodeElement.innerHTML = '';
-            new QRCode(urlQrcodeElement, {
-                text: fullUrl,
+            // モーダルにURLとQRコードを設定
+            modalUrlOutput.value = fullUrl;
+            modalQrcodeElement.innerHTML = '';
+            const qrCode = new QRCodeStyling({
                 width: 200,
                 height: 200,
-                correctLevel: QRCode.CorrectLevel.L
+                data: fullUrl,
+                margin: 0,
+                qrOptions: { errorCorrectionLevel: 'H' },
+                dotsOptions: {
+                    type: 'dots',
+                    color: '#3498db',
+                    gradient: {
+                        type: 'linear',
+                        rotation: 90,
+                        colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }]
+                    }
+                },
+                cornersSquareOptions: { type: 'dot', color: '#e67e22' },
+                cornersDotOptions: { type: 'dot', color: '#e67e22' },
+                backgroundOptions: { color: '#ffffff' },
+                imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
+                image: createTextDataUrl('Rally')
             });
-            document.getElementById('url-qrcode-container').style.display = 'block';
- 
-            alert('共有用のURLを生成しました。下のテキストエリアからURLをコピーして参加者に共有してください。');
- 
+            
+            qrCode.append(modalQrcodeElement);
+            
+            // モーダルを表示
+            shareModal.classList.add('show');
         } catch (error) {
             console.error('URL生成エラー:', error);
             alert(`URLの生成に失敗しました: ${error.message}\n\n時間をおいて再度お試しください。`);
@@ -299,10 +397,31 @@ document.addEventListener('DOMContentLoaded', () => {
             saveButton.textContent = '共有URLを生成';
         }
     });
+
+    // 中央に表示するテキストを画像(DataURL)に変換するヘルパー関数
+    function createTextDataUrl(text) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 128;
+        canvas.height = 128;
+
+        // 白い背景
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // テキストのスタイル
+        ctx.fillStyle = '#2c3e50';
+        ctx.font = 'bold 32px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        return canvas.toDataURL();
+    }
  
     // アプリケーションの初期化
     function initialize() {
-        currentStampPoints = [
+        document.getElementById('rally-title').value = 'Mystery Stamp Rally'; // デフォルトタイトルを設定
+        currentStampPoints = [ // 以前の修正でポイントIDの表示を連番に変更したため、ここも修正
             {
                 id: 'point_' + Date.now(),
                 name: '最初のポイント',

@@ -353,9 +353,28 @@ footer a:hover {
     margin-top: 15px;
     padding: 15px;
     background-color: #fff;
-    display: inline-block;
+    display: inline-block; /* 中央寄せのため */
     border-radius: 5px;
+    position: relative; /* 中央テキストの基準位置 */
+    line-height: 0; /* 余分な下の隙間を削除 */
 }
+
+.qr-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9); /* 少し透過した白 */
+    color: #2c3e50;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid #bdc3c7;
+    pointer-events: none; /* テキストがクリックイベントを奪わないようにする */
+    white-space: nowrap; /* テキストが改行しないようにする */
+}
+
 .stamp-card-header {
     display: flex;
     justify-content: space-between;
@@ -386,8 +405,8 @@ footer a:hover {
     background-color: #27ae60;
 }
 
-/* コンプリートメッセージ入力欄の幅を調整 */
-/* 管理者ページのコンプリートメッセージ入力欄 */
+/* 管理者ページのタイトルとコンプリートメッセージ入力欄の幅を調整 */
+input#rally-title,
 textarea#completion-message {
     width: 100%;
 }
@@ -397,4 +416,152 @@ textarea#completion-message {
     height: 250px; /* 地図の高さ */
     margin: 15px 0;
     border-radius: 5px;
+}
+
+/* 管理者ページのプレビュー画像コンテナ */
+.preview-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* 共有URLのQRコードコンテナ */
+#url-qrcode-container {
+    margin-top: 20px;
+    text-align: center; /* 中のpタグを中央寄せ */
+}
+/* 共有URLのQRコード自体を中央寄せ */
+#url-qrcode-container #url-qrcode {
+    display: flex;
+    justify-content: center;
+}
+
+/* --- 共有モーダル用のスタイル --- */
+.modal-overlay {
+    display: none; /* デフォルトは非表示 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background-color: #34495e;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    text-align: center;
+    position: relative;
+    max-width: 90%;
+    width: 500px;
+}
+
+.modal-title {
+    margin-top: 0;
+    color: #3498db;
+}
+
+.modal-description {
+    margin-bottom: 20px;
+}
+
+.url-copy-container {
+    position: relative;
+}
+
+#modal-url-output {
+    width: 100%;
+    height: 60px; /* 高さを小さく調整 */
+    resize: none; /* リサイズを無効化 */
+    /* 他の入力欄とスタイルを統一 */
+    padding: 8px 40px 8px 8px; /* 右側にボタン用のスペースを確保 */
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    background-color: #7f8c8d;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.copy-btn:hover {
+    background-color: #95a5a6;
+}
+
+.modal-content #modal-qrcode {
+    display: inline-block; /* text-align:centerで中央寄せするため */
+    background-color: #fff; /* 白い背景 */
+    padding: 15px; /* QRコードの周りに余白 */
+    border-radius: 8px; /* 角を少し丸める */
+    line-height: 0; /* 余分な下の隙間を削除 */
+}
+
+/* QRコードとダウンロードボタンのラッパー */
+#modal-qrcode-wrapper {
+    position: relative;
+    display: inline-block; /* text-align:centerで中央寄せするため */
+}
+
+.download-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(44, 62, 80, 0.7); /* 半透明の背景 */
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.download-btn:hover {
+    background-color: rgba(52, 152, 219, 0.9);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2.5rem;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
 }

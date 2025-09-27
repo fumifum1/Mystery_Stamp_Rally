@@ -21,6 +21,10 @@
 
         <main>
             <div class="admin-form-group">
+                <label for="rally-title" style="width: 100%; display: block; margin-bottom: 5px;">ラリーのタイトル:</label>
+                <input type="text" id="rally-title" placeholder="スタンプラリーのタイトルを入力します。">
+            </div>
+            <div class="admin-form-group">
                 <label for="completion-message" style="width: 100%; display: block; margin-bottom: 5px;">コンプリート時メッセージ:</label>
                 <textarea id="completion-message" placeholder="すべてのスタンプを集めた参加者へのメッセージを入力します。"></textarea>
             </div>
@@ -35,23 +39,36 @@
                 <button id="save-button" class="btn btn-primary">共有URLを生成</button>
                 <a href="mspr.html" target="_blank" class="btn btn-link" style="margin-top: 10px;">スタンプラリーページを確認</a>
             </div>
-            <div class="admin-form-group" style="margin-top: 20px;">
-                <label for="url-output" style="width: 100%; display: block; margin-bottom: 5px;">生成された共有URL:</label>
-                <textarea id="url-output" readonly style="min-height: 100px; width: 100%;" placeholder="ここに共有用のURLが生成されます..."></textarea>
-            </div>
-            <div id="url-qrcode-container" class="qr-code-container" style="display: none; margin-top: 20px; text-align: center;">
-                <p style="color: #ecf0f1; margin-bottom: 10px;">↓参加者に共有するQRコード</p>
-                <div id="url-qrcode"></div>
-            </div>
         </main>
     </div>
     <footer>
-        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.1.0
-    </footer>   
+        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.2.0
+    </footer>
+
+    <!-- 共有URL表示用モーダル -->
+    <div id="share-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="share-modal-close-btn" class="modal-close-btn" title="閉じる">&times;</button>
+            <h2 class="modal-title">共有URLとQRコード</h2>
+            <p class="modal-description">このURLまたはQRコードを参加者に共有してください。</p>
+            <div class="url-copy-container">
+                <textarea id="modal-url-output" readonly></textarea>
+                <button id="copy-url-btn" class="copy-btn" title="URLをクリップボードにコピー"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+            </div>
+            <div id="modal-qrcode-wrapper" style="margin-top: 20px;">
+                <div id="modal-qrcode">
+                    <!-- 共有QRコードの中央に表示するテキスト -->
+                    <span class="qr-center-text">Rally</span>
+                </div>
+                <button id="download-qr-btn" class="download-btn" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet.js (地図ライブラリ) のJavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- QRコード生成ライブラリ -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="admin.js"></script>
 </body>
