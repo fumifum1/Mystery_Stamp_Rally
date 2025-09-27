@@ -565,3 +565,9 @@ textarea#completion-message {
     border: none;
     cursor: pointer;
 }
+
+/* 各ポイントのQRコードとダウンロードボタンのラッパー */
+.point-qrcode-wrapper {
+    position: relative;
+    display: inline-block;
+}

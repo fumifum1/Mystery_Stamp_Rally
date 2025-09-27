@@ -84,8 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div style="text-align: center; margin-top: 15px;">
                     <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
-                    <div class="qr-code-container" id="qrcode-${index}">
-                    </div>
+                    <div class="point-qrcode-wrapper">
+                         <div class="qr-code-container" id="qrcode-${index}">
+                         </div>
+                         <button class="download-btn" data-point-index="${index}" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
+                     </div>
                 </div>
             `;
             container.appendChild(pointElement);
@@ -233,6 +236,24 @@ document.addEventListener('DOMContentLoaded', () => {
             link.download = 'rally-qrcode.png';
             link.href = qrImg.src;
             link.click();
+        }
+    });
+
+    container.addEventListener('click', (event) => {
+        const downloadButton = event.target.closest('.download-btn[data-point-index]');
+        if (downloadButton) {
+            const index = downloadButton.dataset.pointIndex;
+            const qrCodeElement = document.getElementById(`qrcode-${index}`);
+            const qrCanvas = qrCodeElement.querySelector('canvas');
+
+            if (qrCanvas) {
+                const link = document.createElement('a');
+                // ファイル名にポイント名を含める
+                const pointName = currentStampPoints[index]?.name.replace(/\s+/g, '_') || `point_${index + 1}`;
+                link.download = `point-qrcode-${pointName}.png`;
+                link.href = qrCanvas.toDataURL('image/png');
+                link.click();
+            }
         }
     });
 
