@@ -248,7 +248,7 @@ function onScanSuccess(decodedText, targetPointId) {
 function showCompletionModal() {
     const overlay = document.getElementById('completion-overlay');
     const messageEl = document.getElementById('completion-message');
-
+ 
     messageEl.textContent = state.rallyConfig.completionMessage || 'すべてのスタンプを集めました！おめでとうございます！';
     overlay.classList.add('show');
     startConfetti(); // モーダル表示と同時に紙吹雪を開始
@@ -263,12 +263,16 @@ function hideCompletionModal() {
 // --- Confetti Animation ---
 let confettiAnimationId;
 let confettiIntervalId;
+let confettiTimeoutId; // 紙吹雪の自動停止用タイマーID
 
 function startConfetti() {
     const canvas = document.getElementById('confetti-canvas'); // この時点で canvas は表示されている
     if (!canvas) return; // 念のため存在チェック
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    stopConfetti(); // 以前のアニメーションが残っている場合は停止する
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const confettiPieces = [];
@@ -330,11 +334,22 @@ function startConfetti() {
     animate();
     launchConfetti(); // 最初に1回打ち上げ
     confettiIntervalId = setInterval(launchConfetti, 500); // 0.5秒ごとに打ち上げ
+
+    // 5秒後に新しい紙吹雪の打ち上げを停止し、その後アニメーション全体を停止する
+    confettiTimeoutId = setTimeout(() => {
+        clearInterval(confettiIntervalId); // 新しい紙吹雪の打ち上げを停止
+        confettiIntervalId = null;
+        // 1秒間、既存の紙吹雪が落下するのを待ってから完全に停止
+        setTimeout(() => {
+            stopConfetti();
+        }, 1000);
+    }, 5000); // 5秒後に実行
 }
 
 function stopConfetti() {
-    if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
-    if (confettiIntervalId) clearInterval(confettiIntervalId);
+    if (confettiAnimationId) { cancelAnimationFrame(confettiAnimationId); confettiAnimationId = null; }
+    if (confettiIntervalId) { clearInterval(confettiIntervalId); confettiIntervalId = null; }
+    if (confettiTimeoutId) { clearTimeout(confettiTimeoutId); confettiTimeoutId = null; } // 自動停止タイマーもクリア
     const canvas = document.getElementById('confetti-canvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');

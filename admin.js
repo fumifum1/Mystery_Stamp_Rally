@@ -90,13 +90,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentLat = parseFloat(latInput.value);
                 const currentLon = parseFloat(lonInput.value);
 
-                // Leaflet地図を初期化
-                const map = L.map(mapElement).setView([currentLat, currentLon], 15);
-
-                // OpenStreetMapのタイルレイヤーを追加
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // ベースレイヤーを定義
+                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
+                });
+
+                const gsiOrtLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg', {
+                    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>'
+                });
+
+                // Leaflet地図を初期化し、デフォルトで白地図を表示
+                const map = L.map(mapElement, {
+                    layers: [osmLayer] // デフォルトで表示するレイヤー
+                }).setView([currentLat, currentLon], 15);
+
+                // レイヤーコントロールに追加するベースマップの定義
+                const baseLayers = {
+                    "白地図": osmLayer,
+                    "航空写真": gsiOrtLayer
+                };
+
+                // レイヤー切り替えコントロールを地図に追加
+                L.control.layers(baseLayers).addTo(map);
 
                 // マーカーを初期位置に配置
                 let marker = L.marker([currentLat, currentLon]).addTo(map);
