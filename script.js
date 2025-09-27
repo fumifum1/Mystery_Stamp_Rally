@@ -59,10 +59,12 @@ function createStampCards() {
         card.className = 'stamp-card';
         card.id = `card-${point.id}`;
         card.innerHTML = `
-            <div class="stamp-card-header">
+            <div class="stamp-card-content">
                 <h2 class="card-title">${point.name}</h2>
-                <img src="stamp_jpg/not_stamp.jpg" alt="スタンプ" class="stamp-icon">
             </div>
+            <div class="stamp-image-container">
+                 <img src="stamp_jpg/not_stamp.jpg" alt="スタンプ" class="stamp-icon">
+             </div>
             <p class="hint-text">${point.hint || ''}</p>
             <p class="distance-info" id="distance-${point.id}">距離: ---</p>
             <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>QRコードをスキャン</button>

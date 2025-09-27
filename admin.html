@@ -17,6 +17,10 @@
         <header class="header">
             <h1 class="title">管理者ページ</h1>
             <p class="status-message">スタンプポイントの座標とQRコードを管理します。</p>
+            <div class="header-buttons">
+                <button id="start-tutorial-btn" class="btn btn-link">使い方ガイド</button>
+                <button id="show-welcome-modal-btn" class="btn btn-link">注意事項</button>
+            </div>
         </header>
 
         <main>
@@ -41,8 +45,29 @@
             </div>
         </main>
     </div>
+
+    <!-- 初回訪問時 注意事項モーダル -->
+    <div id="welcome-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title">はじめに - ご利用にあたっての注意事項</h2>
+            <div class="welcome-modal-body">
+                <p>このスタンプラリー作成ツールをご利用いただき、ありがとうございます。</p>
+                <p>本ツールは、サーバーを持たないシンプルな技術で動作しており、URLを知っている第三者が設定内容（コンプリートメッセージや各ポイントの座標など）を比較的容易に確認できてしまう可能性があります。</p>
+                <div class="important-notes">
+                    <p><strong>【重要】</strong></p>
+                    <ul>
+                        <li><strong>ネタバレに注意:</strong> コンプリートメッセージに最後の謎の答えなど、事前に知られては困る重大な情報は記載しないでください。</li>
+                        <li><strong>景品を伴う利用:</strong> 不特定多数が参加し、高価な景品を出すような本格的なイベントでの利用は、システムの単純さをご理解いただいた上でご判断ください。</li>
+                    </ul>
+                </div>
+                <p>個人的なグループやサークル活動など、参加者が限定的な範囲でのご利用を推奨しております。</p>
+            </div>
+            <button id="welcome-modal-close-btn" class="btn btn-primary">理解しました</button>
+        </div>
+    </div>
+
     <footer>
-        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.3.0
+        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.4.0
     </footer>
 
     <!-- 共有URL表示用モーダル -->

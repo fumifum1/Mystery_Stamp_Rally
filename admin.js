@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalQrcodeElement = document.getElementById('modal-qrcode');
     const copyUrlBtn = document.getElementById('copy-url-btn');
     const downloadQrBtn = document.getElementById('download-qr-btn');
+    const startTutorialBtn = document.getElementById('start-tutorial-btn');
+    // 初回訪問モーダル関連
+    const welcomeModal = document.getElementById('welcome-modal');
+    const showWelcomeModalBtn = document.getElementById('show-welcome-modal-btn');
+    const welcomeModalCloseBtn = document.getElementById('welcome-modal-close-btn');
+
  
     // 画像設定の定数
     const MAX_IMAGE_WIDTH = 400; // 画像の最大幅
@@ -18,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
     let currentStampPoints = [];
+    const mapInstances = {}; // 地図のインスタンスを保持するオブジェクト
  
     // UIから現在の入力値を読み取り、currentStampPointsに同期する
     function syncDataFromUI() {
@@ -42,9 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
  
     // currentStampPoints配列に基づいてUIを再描画する
     function renderUI() {
-        // 再描画する前に現在の入力値を保存
-        syncDataFromUI();
- 
         container.innerHTML = '';
         currentStampPoints.forEach((point, index) => {
             const pointElement = document.createElement('div');
@@ -67,8 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
                 </div>
                 <div class="admin-form-group">
-                    <p style="width: 100%; margin: 10px 0 5px;">↓地図をクリックして座標を設定</p>
-                    <div id="map-${index}" class="map-container"></div>
+                    <a href="#" class="map-toggle-link" data-index="${index}">地図から座標を取得 ▼</a>
+                    <div id="map-wrapper-${index}" class="map-wrapper">
+                        <div id="map-${index}" class="map-container"></div>
+                    </div>
                 </div>
                 <div class="admin-form-group">
                     <label for="hint-${index}">ヒント:</label>
@@ -78,17 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="image-upload-${index}">達成画像:</label>
                     <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}">
                 </div>
-                <div class="preview-container">
-                    <p>画像プレビュー（スタンプ達成時に表示されます）</p>
-                    <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
-                </div>
-                <div style="text-align: center; margin-top: 15px;">
-                    <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
-                    <div class="point-qrcode-wrapper">
-                         <div class="qr-code-container" id="qrcode-${index}">
-                         </div>
-                         <button class="download-btn" data-point-index="${index}" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
-                     </div>
+                <div class="admin-media-container">
+                    <div class="media-item">
+                        <p>画像プレビュー（スタンプ達成時に表示されます）</p>
+                        <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
+                    </div>
+                    <div class="media-item">
+                        <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
+                        <div class="point-qrcode-wrapper">
+                            <div class="qr-code-container" id="qrcode-${index}">
+                            </div>
+                            <button class="download-btn" data-point-index="${index}" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
+                        </div>
+                    </div>
                 </div>
             `;
             container.appendChild(pointElement);
@@ -125,6 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // レイヤー切り替えコントロールを地図に追加
                 L.control.layers(baseLayers).addTo(map);
+
+                // 地図インスタンスを保存
+                mapInstances[index] = map;
 
                 // マーカーを初期位置に配置
                 let marker = L.marker([currentLat, currentLon]).addTo(map);
@@ -197,6 +208,86 @@ document.addEventListener('DOMContentLoaded', () => {
         shareModal.classList.remove('show');
     });
 
+    // チュートリアルを開始するイベント
+    startTutorialBtn.addEventListener('click', () => {
+        runTutorial();
+    });
+
+    // 注意事項モーダルを表示するイベント
+    showWelcomeModalBtn.addEventListener('click', () => {
+        welcomeModal.classList.add('show');
+    });
+
+    // --- 自作チュートリアル機能 ---
+    function runTutorial() {
+        const steps = [
+            { title: 'ステップ1: ラリーの基本設定', image: 'tutorial_images/step1.jpg', description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。' },
+            { title: 'ステップ2: スタンプポイントの設定', image: 'tutorial_images/step2.jpg', description: '次に、各スタンプポイントを設定します。名前、地図上の場所、ヒント、スタンプ達成時に表示される画像をここで設定します。' },
+            { title: 'ステップ3: ポイント用QRコードの確認', image: 'tutorial_images/step3.jpg', description: '各ポイントカード内には、現地設置用のQRコードが自動で生成されます。ダウンロードボタンから画像を保存し、印刷して使いましょう。また、「スタンプポイントを追加」ボタンでポイントを増やせます。' },
+            { title: 'ステップ4: ラリーの公開', image: 'tutorial_images/step4.jpg', description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押して参加者用のURLを発行します。このURLを参加者に共有すれば、ラリーを開始できます。' }
+        ];
+
+        let currentStep = 0;
+        const overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        overlay.onclick = endTutorial; // 背景クリックで閉じる
+
+        const popover = document.createElement('div');
+        popover.className = 'tutorial-popover';
+        popover.onclick = (e) => e.stopPropagation(); // ポップオーバー内のクリックは伝播させない
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(popover);
+
+        function showStep(index) {
+            const step = steps[index];
+
+            popover.innerHTML = `
+                <h4>${step.title}</h4>
+                ${step.image ? `<img src="${step.image}" alt="${step.title}" class="tutorial-image">` : ''}
+                <p>${step.description}</p>
+                <div class="tutorial-navigation">
+                    <button id="tutorial-prev" class="btn btn-secondary" ${index === 0 ? 'disabled' : ''}>戻る</button>
+                    <span class="step-counter">${index + 1} / ${steps.length}</span>
+                    <button id="tutorial-next" class="btn btn-primary">${index === steps.length - 1 ? '完了' : '次へ'}</button>
+                </div>
+                <button id="tutorial-close" class="modal-close-btn" title="閉じる">&times;</button>
+            `;
+
+            setTimeout(() => popover.classList.add('show'), 50);
+
+            document.getElementById('tutorial-close').onclick = endTutorial;
+
+            document.getElementById('tutorial-next').onclick = () => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                } else {
+                    endTutorial();
+                }
+            };
+
+            document.getElementById('tutorial-prev').onclick = () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            };
+        }
+
+        function endTutorial() {
+            overlay.classList.remove('show');
+            popover.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                document.body.removeChild(popover);
+            }, 300);
+        }
+
+        overlay.classList.add('show');
+        showStep(currentStep);
+    }
+
     // URLコピーボタンのイベント
     copyUrlBtn.addEventListener('click', () => {
         const urlToCopy = modalUrlOutput.value;
@@ -239,13 +330,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    container.addEventListener('click', (event) => {
+    // スタンプカードコンテナ内のイベントをまとめて処理（イベント委任）
+    container.addEventListener('click', async (event) => {
+        // 地図表示切り替えリンクの処理
+        const mapToggleLink = event.target.closest('.map-toggle-link');
+        if (mapToggleLink) {
+            event.preventDefault();
+            const index = mapToggleLink.dataset.index;
+            const mapWrapper = document.getElementById(`map-wrapper-${index}`);
+            if (mapWrapper) {
+                const isOpening = !mapWrapper.classList.contains('show');
+                mapWrapper.classList.toggle('show');
+                mapToggleLink.textContent = mapWrapper.classList.contains('show') ? '地図を閉じる ▲' : '地図から座標を取得 ▼';
+                // 地図が開かれたときにサイズを再計算
+                if (isOpening && mapInstances[index]) {
+                    setTimeout(() => mapInstances[index].invalidateSize(), 300); // アニメーション完了後に実行
+                }
+            }
+            return;
+        }
+        // QRコードダウンロードボタンの処理
         const downloadButton = event.target.closest('.download-btn[data-point-index]');
         if (downloadButton) {
-            const index = downloadButton.dataset.pointIndex;
+            const index = parseInt(downloadButton.dataset.pointIndex, 10);
             const qrCodeElement = document.getElementById(`qrcode-${index}`);
             const qrCanvas = qrCodeElement.querySelector('canvas');
-
+    
             if (qrCanvas) {
                 const link = document.createElement('a');
                 // ファイル名にポイント名を含める
@@ -254,20 +364,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = qrCanvas.toDataURL('image/png');
                 link.click();
             }
+            return; // 他の処理と競合しないようにここで終了
         }
-    });
-
-    container.addEventListener('click', (event) => {
-        if (event.target.matches('.delete-btn')) {
-            const index = parseInt(event.target.dataset.index, 10);
+    
+        // 削除ボタンの処理
+        const deleteButton = event.target.closest('.delete-btn');
+        if (deleteButton) {
+            const index = parseInt(deleteButton.dataset.index, 10);
             const pointName = currentStampPoints[index].name || '(新規ポイント)';
             if (confirm(`「${pointName}」を本当に削除しますか？\nこの操作は元に戻せません。`)) {
                 currentStampPoints.splice(index, 1);
                 renderUI();
             }
+            return;
         }
     });
+
+    container.addEventListener('change', async (event) => {
+        // 画像アップロードの処理
+        if (event.target.matches('.image-upload-input')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            const point = currentStampPoints[index];
+            const file = event.target.files[0];
  
+            if (file && point) {
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    alert(`ファイルサイズが大きすぎます。\n${MAX_FILE_SIZE_MB}MB以下の画像を選択してください。`);
+                    event.target.value = ''; // ファイル選択をリセット
+                    return;
+                }
+                point.stampedImageSrc = await processAndResizeImage(file);
+                renderUI(); // 画像処理が終わったらUIを再描画して反映
+            }
+        }
+    });
+
     // 画像リサイズ処理
     async function processAndResizeImage(file) {
         return new Promise((resolve, reject) => {
@@ -300,24 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    container.addEventListener('change', async (event) => {
-        if (event.target.matches('.image-upload-input')) {
-            const index = parseInt(event.target.dataset.index, 10);
-            const point = currentStampPoints[index];
-            const file = event.target.files[0];
- 
-            if (file && point) {
-                if (file.size > MAX_FILE_SIZE_BYTES) {
-                    alert(`ファイルサイズが大きすぎます。\n${MAX_FILE_SIZE_MB}MB以下の画像を選択してください。`);
-                    event.target.value = ''; // ファイル選択をリセット
-                    return;
-                }
-                point.stampedImageSrc = await processAndResizeImage(file);
-                renderUI(); // 画像処理が終わったらUIを再描画して反映
-            }
-        }
-    });
- 
     saveButton.addEventListener('click', async () => {
         try {
             syncDataFromUI();
@@ -452,6 +565,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 hint: '例：東京駅'
             }
         ];
+
+        // 初回訪問時に注意事項モーダルを表示
+        if (!localStorage.getItem('hasVisitedAdmin')) {
+            welcomeModal.classList.add('show');
+        }
+        // 注意事項モーダルを閉じるイベント（常時設定）
+        welcomeModalCloseBtn.addEventListener('click', () => {
+            welcomeModal.classList.remove('show');
+            // 初回訪問フラグは、初めて閉じたときにだけ立てる
+            if (!localStorage.getItem('hasVisitedAdmin')) {
+                localStorage.setItem('hasVisitedAdmin', 'true');
+            }
+        });
+
         renderUI();
     }
  

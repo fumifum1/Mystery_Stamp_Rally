@@ -35,6 +35,14 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     margin: 0;
 }
+.header-buttons {
+    display: flex;
+    flex-direction: column; /* 縦並びに変更 */
+    align-items: center;   /* 中央寄せ */
+    gap: 10px;             /* ボタン間の垂直方向の隙間 */
+    margin-top: 15px;
+}
+
 
 .status-message {
     font-size: 1rem;
@@ -70,17 +78,24 @@ body {
     gap: 10px; /* タイトルとボタンの間に隙間を作る */
 }
 
+/* 使用者ページのスタンプカード内コンテンツ */
+.stamp-card-content {
+    text-align: center;
+}
+.stamp-image-container {
+    text-align: center;
+    margin: 15px 0;
+}
+
 .card-title {
     font-size: 1.5rem;
     color: #3498db; /* アクセントカラー */
-    margin: 0;
-    flex-shrink: 1; /* コンテナが狭い場合に縮むようにする */
-    min-width: 0; /* flex-shrinkを正しく機能させるために必要 */
+    margin: 0 0 10px 0;
 }
 
 .stamp-icon {
-    width: 60px;
-    height: 60px;
+    width: 150px;  /* QRコードのサイズに合わせて大きくする */
+    height: 150px; /* QRコードのサイズに合わせて大きくする */
     border-radius: 50%; /* 画像を丸くする */
     object-fit: cover; /* 画像の比率を維持し、はみ出た部分をトリミング */
     background-color: #34495e; /* 画像読み込み前の背景色 */
@@ -144,6 +159,11 @@ body {
 
 .btn-danger:hover {
     background-color: #c0392b;
+}
+
+.btn-link {
+    background: none;
+    color: #3498db;
 }
 
 .btn-success {
@@ -418,12 +438,48 @@ textarea#completion-message {
     border-radius: 5px;
 }
 
+/* 地図表示切り替えリンク */
+.map-toggle-link {
+    display: inline-block;
+    margin: 10px 0 5px;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+}
+.map-toggle-link:hover {
+    text-decoration: underline;
+}
+
+/* 地図のラッパー（開閉アニメーション用） */
+.map-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+.map-wrapper.show {
+    max-height: 300px; /* map-containerの高さ + marginより大きい値 */
+}
 /* 管理者ページのプレビュー画像コンテナ */
-.preview-container {
+.admin-media-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     margin-top: 15px;
+    gap: 20px;
+    flex-wrap: wrap; /* 画面が狭い場合に折り返す */
+}
+
+.media-item {
+    text-align: center;
+    flex: 1; /* 横並び時に均等な幅を確保 */
+    min-width: 220px; /* 折り返す際の最小幅 */
+}
+
+/* 画面幅が500px以下の場合、縦並びにする */
+@media (max-width: 500px) {
+    .admin-media-container {
+        flex-direction: column;
+    }
 }
 
 /* 共有URLのQRコードコンテナ */
@@ -463,12 +519,16 @@ textarea#completion-message {
 .modal-content {
     background-color: #34495e;
     padding: 30px 40px;
-    border-radius: 10px;
+    border-radius: 15px; /* 少し角を丸くして柔らかい印象に */
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     text-align: center;
     position: relative;
     max-width: 90%;
     width: 500px;
+    max-height: 85vh;
+    display: flex; /* Flexboxコンテナに変更 */
+    flex-direction: column; /* 子要素を縦に並べる */
+    overflow: hidden; /* 子要素のスクロールに任せる */
 }
 
 .modal-title {
@@ -566,8 +626,131 @@ textarea#completion-message {
     cursor: pointer;
 }
 
+/* --- 初回訪問モーダル用のスタイル --- */
+.welcome-modal-body {
+    flex-grow: 1; /* 利用可能なスペースを埋める */
+    overflow-y: auto; /* このエリアだけをスクロールさせる */
+    text-align: left;
+    padding-right: 15px; /* スクロールバーのスペースを確保 */
+    margin: 20px -15px 30px 0; /* 左右のネガティブマージンでpaddingを相殺 */
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #bdc3c7;
+    /* スクロールバーのスタイル（モダンブラウザ向け） */
+    scrollbar-width: thin;
+    scrollbar-color: #7f8c8d #34495e;
+}
+
+/* スクロールバーのスタイル（WebKit系ブラウザ向け） */
+.welcome-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+.welcome-modal-body::-webkit-scrollbar-track {
+    background: transparent; /* トラックは透明に */
+}
+.welcome-modal-body::-webkit-scrollbar-thumb {
+    background-color: #7f8c8d;
+    border-radius: 4px;
+}
+
+.welcome-modal-body p {
+    margin: 10px 0;
+}
+
+.important-notes {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    padding: 10px 20px;
+    margin: 20px 0;
+    border-radius: 0 5px 5px 0;
+}
+
+.important-notes p {
+    color: #f1c40f;
+    margin-top: 0;
+}
+.important-notes ul {
+    padding-left: 20px;
+}
 /* 各ポイントのQRコードとダウンロードボタンのラッパー */
 .point-qrcode-wrapper {
     position: relative;
     display: inline-block;
+}
+
+/* --- 自作チュートリアル用のスタイル --- */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999; /* ポップオーバーより手前に来るように調整 */
+    background: rgba(44, 62, 80, 0.85);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    cursor: pointer; /* クリックで閉じられることを示す */
+}
+.tutorial-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tutorial-popover {
+    position: fixed; /* 画面中央に固定 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95); /* 中央寄せ + 表示前スケール */
+    z-index: 10000;
+    background: #34495e; /* モーダルコンテンツと同じ背景色 */
+    color: #ecf0f1;
+    padding: 30px 40px;
+    border-radius: 5px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none; /* showクラスが付くまでは操作不可 */
+}
+.tutorial-popover.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.tutorial-popover h4 {
+    margin: 0 0 10px 0;
+    color: #3498db;
+}
+
+.tutorial-image {
+    width: 100%;
+    height: auto; /* アスペクト比を維持 */
+    border-radius: 5px;
+    margin: 15px 0; /* 上下のマージン */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.tutorial-popover p {
+    margin: 0 0 25px 0;
+    font-size: 0.9rem;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+/* チュートリアルのボタン幅を調整 */
+.tutorial-navigation .btn {
+    width: auto;
+    min-width: 80px;
+    padding: 8px 16px;
+}
+
+.tutorial-navigation .step-counter {
+    font-size: 0.8rem;
+    color: #bdc3c7;
 }
