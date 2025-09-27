@@ -62,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
                 </div>
                 <div class="admin-form-group">
+                    <p style="width: 100%; margin: 10px 0 5px;">↓地図をクリックして座標を設定</p>
+                    <div id="map-${index}" class="map-container"></div>
+                </div>
+                <div class="admin-form-group">
                     <label for="hint-${index}">ヒント:</label>
                     <textarea id="hint-${index}">${point.hint || ''}</textarea>
                 </div>
@@ -77,6 +81,39 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(pointElement);
  
             // setTimeoutを使い、DOMの描画が完了した後にQRコードを生成する
+            // 地図の初期化
+            const mapElement = document.getElementById(`map-${index}`);
+            const latInput = document.getElementById(`lat-${index}`);
+            const lonInput = document.getElementById(`lon-${index}`);
+
+            if (mapElement && latInput && lonInput) {
+                const currentLat = parseFloat(latInput.value);
+                const currentLon = parseFloat(lonInput.value);
+
+                // Leaflet地図を初期化
+                const map = L.map(mapElement).setView([currentLat, currentLon], 15);
+
+                // OpenStreetMapのタイルレイヤーを追加
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // マーカーを初期位置に配置
+                let marker = L.marker([currentLat, currentLon]).addTo(map);
+
+                // 地図クリックイベント
+                map.on('click', function(e) {
+                    const clickedLat = e.latlng.lat;
+                    const clickedLon = e.latlng.lng;
+
+                    // フォームの値を更新
+                    latInput.value = clickedLat.toFixed(6);
+                    lonInput.value = clickedLon.toFixed(6);
+
+                    // マーカーの位置を更新
+                    marker.setLatLng(e.latlng);
+                });
+            }
             setTimeout(() => {
                 const qrCodeElement = document.getElementById(`qrcode-${index}`);
                 if (qrCodeElement) {

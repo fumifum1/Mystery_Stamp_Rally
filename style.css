@@ -391,3 +391,10 @@ footer a:hover {
 textarea#completion-message {
     width: 100%;
 }
+
+/* 管理者ページの地図コンテナ */
+.map-container {
+    height: 250px; /* 地図の高さ */
+    margin: 15px 0;
+    border-radius: 5px;
+}
