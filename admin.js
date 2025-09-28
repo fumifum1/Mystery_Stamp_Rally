@@ -221,10 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 自作チュートリアル機能 ---
     function runTutorial() {
         const steps = [
-            { title: 'ステップ1: ラリーの基本設定', image: 'tutorial_images/step1.jpg', description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。' },
-            { title: 'ステップ2: スタンプポイントの設定', image: 'tutorial_images/step2.jpg', description: '次に、各スタンプポイントを設定します。名前、地図上の場所、ヒント、スタンプ達成時に表示される画像をここで設定します。' },
-            { title: 'ステップ3: ポイント用QRコードの確認', image: 'tutorial_images/step3.jpg', description: '各ポイントカード内には、現地設置用のQRコードが自動で生成されます。ダウンロードボタンから画像を保存し、印刷して使いましょう。また、「スタンプポイントを追加」ボタンでポイントを増やせます。' },
-            { title: 'ステップ4: ラリーの公開', image: 'tutorial_images/step4.jpg', description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押して参加者用のURLを発行します。このURLを参加者に共有すれば、ラリーを開始できます。' }
+            { title: 'ステップ1: ラリーの基本設定', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step1.JPG', description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。' },
+            { title: 'ステップ2: スタンプポイントの設定', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step2.JPG', description: '次に、各スタンプポイントを設定します。名前、地図上の場所、ヒント、スタンプ達成時に表示される画像をここで設定します。' },
+            { title: 'ステップ3: ポイント用QRコードの確認', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step3.JPG', description: '各ポイントカード内には、現地設置用のQRコードが自動で生成されます。ダウンロードボタンから画像を保存し、印刷して使いましょう。また、「スタンプポイントを追加」ボタンでポイントを増やせます。' },
+            { title: 'ステップ4: ラリーの公開', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step4.JPG', description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押して参加者用のURLを発行します。このURLを参加者に共有すれば、ラリーを開始できます。' }
         ];
 
         let currentStep = 0;
