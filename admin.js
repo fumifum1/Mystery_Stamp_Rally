@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             point.latitude = latInput ? parseFloat(latInput.value) : point.latitude;
             point.longitude = lonInput ? parseFloat(lonInput.value) : point.longitude;
             point.hint = hintInput ? hintInput.value : point.hint;
+            // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
     }
  
@@ -81,8 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <textarea id="hint-${index}">${point.hint || ''}</textarea>
                 </div>
                 <div class="admin-form-group">
-                    <label for="image-upload-${index}">達成画像:</label>
-                    <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}">
+                    <div class="admin-form-row">
+                        <label for="hint-image-upload-${index}">ヒント画像:</label>
+                        <div class="hint-image-controls">
+                            ${point.hintImageSrc
+                                ? `
+                                    <div class="hint-image-preview-wrapper">
+                                        <img src="${point.hintImageSrc}" alt="ヒント画像プレビュー" class="hint-image-preview">
+                                        <button class="delete-btn delete-hint-image-btn" data-index="${index}" title="ヒント画像を削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
+                                    </div>
+                                ` : `
+                                    <label for="hint-image-upload-${index}" class="button-2">ヒント画像を追加</label>
+                                    <input type="file" id="hint-image-upload-${index}" accept="image/*" class="hint-image-upload-input" data-index="${index}" style="display: none;" >
+                                `}
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-form-group">
+                    <div class="admin-form-row">
+                        <label for="image-upload-${index}">達成画像:</label>
+                        <div class="stamped-image-controls">
+                            <label for="image-upload-${index}" class="button-2">達成画像を選択</label>
+                            <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}" style="display: none;">
+                        </div>
+                    </div>
                 </div>
                 <div class="admin-media-container">
                     <div class="media-item">
@@ -132,7 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 // レイヤー切り替えコントロールを地図に追加
-                L.control.layers(baseLayers).addTo(map);
+                // collapsed: false にすることで、スマホでのタッチ操作の不具合を回避し、常に選択肢を表示する
+                L.control.layers(baseLayers, null, {
+                    collapsed: false
+                }).addTo(map);
 
                 // 地図インスタンスを保存
                 mapInstances[index] = map;
@@ -191,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
     // イベントリスナーの設定
     addButton.addEventListener('click', () => {
+        syncDataFromUI(); // UIの現在の値をデータに同期
         const newId = 'point_' + Date.now();
         currentStampPoints.push({
             id: newId,
@@ -198,7 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
             latitude: 35.681236, // デフォルト: 東京駅
             longitude: 139.767125,
             stampedImageSrc: '',
-            hint: ''
+            hint: '',
+            hintImageSrc: '' // ヒント画像用のプロパティを追加
         });
         renderUI();
     });
@@ -221,10 +249,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 自作チュートリアル機能 ---
     function runTutorial() {
         const steps = [
-            { title: 'ステップ1: ラリーの基本設定', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step1.JPG', description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。' },
-            { title: 'ステップ2: スタンプポイントの設定', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step2.JPG', description: '次に、各スタンプポイントを設定します。名前、地図上の場所、ヒント、スタンプ達成時に表示される画像をここで設定します。' },
-            { title: 'ステップ3: ポイント用QRコードの確認', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step3.JPG', description: '各ポイントカード内には、現地設置用のQRコードが自動で生成されます。ダウンロードボタンから画像を保存し、印刷して使いましょう。また、「スタンプポイントを追加」ボタンでポイントを増やせます。' },
-            { title: 'ステップ4: ラリーの公開', image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step4.JPG', description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押して参加者用のURLを発行します。このURLを参加者に共有すれば、ラリーを開始できます。' }
+            { 
+                title: 'ステップ1: ラリーの基本設定', 
+                image: '', // 画像は後で設定
+                description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。これらは参加者が見る最初の画面と最後の画面になります。' 
+            },
+            { 
+                title: 'ステップ2: ポイントの基本情報', 
+                image: '', // 画像は後で設定
+                description: '「スタンプポイントを追加」ボタンでポイントを増やせます。各ポイントの「名前」と「緯度・経度」を設定しましょう。「地図から座標を取得」を使うと、地図をクリックして簡単に座標を入力できます。' 
+            },
+            { 
+                title: 'ステップ3: ヒントとヒント画像', 
+                image: '', // 画像は後で設定
+                description: '参加者への「ヒント」をテキストで入力します。さらに、「ヒント画像を追加」ボタンから画像を設定することも可能です。謎解きの鍵となる画像などを設定しましょう。' 
+            },
+            { 
+                title: 'ステップ4: 達成画像とQRコード', 
+                image: '', // 画像は後で設定
+                description: '「達成画像を選択」ボタンで、スタンプを押した時に表示される画像を設定します。設定後、その下にある「現地設置用QRコード」をダウンロードし、印刷して各ポイントに設置してください。' 
+            },
+            { 
+                title: 'ステップ5: ラリーの公開', 
+                image: '', // 画像は後で設定
+                description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押します。表示されたURLまたはQRコードを参加者に共有すれば、ラリーを開始できます！' 
+            }
         ];
 
         let currentStep = 0;
@@ -366,9 +415,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return; // 他の処理と競合しないようにここで終了
         }
-    
+
+        // ヒント画像削除ボタンの処理 (ポイント削除より先にチェック)
+        const deleteHintImageBtn = event.target.closest('.delete-hint-image-btn');
+        if (deleteHintImageBtn) {
+            const index = parseInt(deleteHintImageBtn.dataset.index, 10);
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].hintImageSrc = '';
+                renderUI(); // UIを再描画して反映
+            }
+            return;
+        }
+
         // 削除ボタンの処理
-        const deleteButton = event.target.closest('.delete-btn');
+        const deleteButton = event.target.closest('.delete-btn:not(.delete-hint-image-btn)');
         if (deleteButton) {
             const index = parseInt(deleteButton.dataset.index, 10);
             const pointName = currentStampPoints[index].name || '(新規ポイント)';
@@ -393,7 +453,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     event.target.value = ''; // ファイル選択をリセット
                     return;
                 }
+                syncDataFromUI(); // 他のフォームの値をデータに同期
                 point.stampedImageSrc = await processAndResizeImage(file);
+                renderUI(); // 画像処理が終わったらUIを再描画して反映
+            }
+        }
+        // ヒント画像アップロードの処理
+        if (event.target.matches('.hint-image-upload-input')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            const point = currentStampPoints[index];
+            const file = event.target.files[0];
+
+            if (file && point) {
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    alert(`ファイルサイズが大きすぎます。\n${MAX_FILE_SIZE_MB}MB以下の画像を選択してください。`);
+                    event.target.value = ''; // ファイル選択をリセット
+                    return;
+                }
+                syncDataFromUI(); // 他のフォームの値をデータに同期
+                point.hintImageSrc = await processAndResizeImage(file);
                 renderUI(); // 画像処理が終わったらUIを再描画して反映
             }
         }
@@ -562,7 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 latitude: 35.681236,
                 longitude: 139.767125,
                 stampedImageSrc: '',
-                hint: '例：東京駅'
+                hint: '例：東京駅',
+                hintImageSrc: '' // ヒント画像用のプロパティを追加
             }
         ];
 

@@ -103,15 +103,32 @@ body {
     transition: border-color 0.3s ease-in-out;
 }
 
-.hint-text {
-    font-size: 0.9rem;
-    font-style: italic;
-    color: #bdc3c7;
+.hint-container {
+    display: flex; /* 子要素を縦に並べる */
+    flex-direction: column;
+    gap: 10px; /* テキストと画像の間の隙間 */
     margin: 15px 0;
+}
+
+.hint-image-wrapper {
+    width: 100%;
+    text-align: center; /* 画像を中央に配置 */
+}
+
+.hint-image {
+    max-width: 100%; /* 親要素の幅に合わせる */
+    height: auto; /* アスペクト比を維持 */
+    object-fit: cover;
+    border-radius: 5px;
+    border: 2px solid #7f8c8d;
+}
+
+.hint-text {
+    width: 100%; /* 幅を100%に */
+    box-sizing: border-box; /* paddingを含めて幅を計算 */
     padding: 10px 15px;
     background-color: #34495e;
     border-left: 4px solid #3498db;
-    border-radius: 0 5px 5px 0;
 }
 
 .distance-info {
@@ -159,6 +176,19 @@ body {
 
 .btn-danger:hover {
     background-color: #c0392b;
+}
+
+.btn-link-danger {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 5px;
+}
+
+.btn-link-danger:hover {
+    color: #c0392b;
 }
 
 .btn-link {
@@ -345,14 +375,22 @@ footer a:hover {
 
 /* --- 管理者ページ専用スタイル --- */
 .admin-form-group {
+    /* display: flex;  このルールは個別のカード内に移動 */
+    /* align-items: center; */
     margin-bottom: 15px;
 }
+/* スタンプカード内のフォームグループにのみFlexboxを適用 */
+.stamp-card .admin-form-group {
+    display: flex; /* Flexboxを適用して子要素を揃える */
+    align-items: center; /* 垂直方向の中央揃え */
+}
 .admin-form-group label {
-    display: inline-block;
     width: 60px;
     font-weight: bold;
-    vertical-align: top; /* textareaとラベルの縦位置を揃える */
-    padding-top: 8px; /* input/textareaのpaddingと合わせる */
+    flex-shrink: 0; /* ラベルが縮まないようにする */
+    /* vertical-align と padding-top はFlexboxでは不要になるため削除 */
+    /* vertical-align: top; */
+    /* padding-top: 8px; */
 }
 .admin-form-group input,
 .admin-form-group textarea {
@@ -361,7 +399,7 @@ footer a:hover {
     border: 1px solid #7f8c8d;
     background-color: #ecf0f1;
     color: #2c3e50;
-    width: calc(100% - 80px);
+    width: calc(100% - 60px - 20px); /* (親幅 - ラベル幅 - 隙間) */
     box-sizing: border-box; /* paddingとborderをwidthに含める */
     font-family: inherit;
 }
@@ -423,6 +461,66 @@ footer a:hover {
 }
 .btn-secondary {
     background-color: #27ae60;
+}
+.btn-secondary:hover:not(:disabled) {
+    background-color: #229954;
+}
+
+/* 小さいボタン用のスタイル */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    width: auto; /* 幅を自動調整 */
+    display: inline-block; /* ラベルとして機能させるため */
+}
+
+/* 管理者ページのフォームでラベルと入力を横並びにするためのラッパー */
+.admin-form-row {
+    display: flex;
+    align-items: center; /* 垂直方向の中央揃え */
+    width: 100%;
+}
+.admin-form-row > label {
+    /* 他のラベルと同じスタイルを適用 */
+    width: 90px; /* ラベルが折り返さないように幅をさらに広げる */
+    font-weight: bold;
+    flex-shrink: 0; /* ラベルが縮まないようにする */
+}
+
+/* 管理者ページのヒント画像コントロール */
+.hint-image-controls,
+.stamped-image-controls {
+    flex-grow: 1; /* 残りのスペースを埋める */
+    /* width指定はflex-growに任せるため削除 */
+}
+
+/* ヒント画像追加ボタン（実体はlabel）のスタイル */
+.hint-image-controls > label.btn:not(.button-2),
+.stamped-image-controls > label.btn:not(.button-2) {
+    width: 100%;
+    box-sizing: border-box; /* paddingを含めて幅を計算 */
+    text-align: center;
+}
+
+.hint-image-preview-wrapper {
+    display: flex;
+    flex-direction: column; /* プレビューと削除ボタンを縦に並べる */
+    align-items: flex-start; /* 全体を左寄せ */
+    gap: 10px;
+    position: relative; /* 削除ボタンの配置基準 */
+    width: 100%;
+}
+.hint-image-preview {
+    max-width: 100%; /* 幅いっぱいに表示 */
+    height: auto;
+    border-radius: 4px;
+}
+
+/* ヒント画像プレビューの削除ボタン */
+.hint-image-preview-wrapper .delete-btn {
+    position: absolute; /* プレビュー画像の右上に配置 */
+    top: 5px;
+    right: 5px;
 }
 
 /* 管理者ページのタイトルとコンプリートメッセージ入力欄の幅を調整 */
@@ -753,4 +851,27 @@ textarea#completion-message {
 .tutorial-navigation .step-counter {
     font-size: 0.8rem;
     color: #bdc3c7;
+}
+
+/* ユーザー指定のボタンスタイル */
+.button-2 {
+  display: inline-flex; /* Flexboxを使用して中央揃えを確実にする */
+  align-items: center; /* 垂直中央揃え */
+  justify-content: center; /* 水平中央揃え */
+  padding: 0.4em 1.6em;
+  min-width: 10rem; /* ボタンの最小幅をrem単位で指定し、安定させる */
+  white-space: nowrap; /* テキストの折り返しを禁止 */
+  box-sizing: border-box; /* paddingとborderをwidthに含める */
+  font-size: 0.8rem;
+  color: #00b5ad;
+  text-decoration: none;
+  user-select: none;
+  border: 1px #00b5ad solid;
+  border-radius: 20px;
+  transition: 0.4s ease;
+}
+
+.button-2:hover {
+  color: #fff;
+  background: #00b5ad;
 }

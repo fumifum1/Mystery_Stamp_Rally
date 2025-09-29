@@ -6,7 +6,8 @@ const defaultStampPoints = [
         latitude: 35.681236, // 東京駅
         longitude: 139.767125,
         stampedImageSrc: '', // 画像は空でもOK
-        hint: 'これは開発用のヒントです。'
+        hint: 'これは開発用のヒントです。',
+        hintImageSrc: '' // ヒント画像用のプロパティ
     },
     {
         id: 'dev_point_2',
@@ -15,7 +16,8 @@ const defaultStampPoints = [
         longitude: 139.745433,
         // テスト用にローカルの画像を直接指定することもできます
         stampedImageSrc: 'stamp_jpg/Apoint.jpg', 
-        hint: 'ヒント２'
+        hint: 'ヒント２',
+        hintImageSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Tokyo_Tower_at_night_-_2019_05_11.jpg/800px-Tokyo_Tower_at_night_-_2019_05_11.jpg'
     }
 ];
 
@@ -65,7 +67,16 @@ function createStampCards() {
             <div class="stamp-image-container">
                  <img src="stamp_jpg/not_stamp.jpg" alt="スタンプ" class="stamp-icon">
              </div>
-            <p class="hint-text">${point.hint || ''}</p>
+            <div class="hint-container">
+                ${point.hint ? `
+                    <p class="hint-text">${point.hint}</p>
+                ` : ''}
+                ${point.hintImageSrc ? `
+                    <div class="hint-image-wrapper">
+                        <img src="${point.hintImageSrc}" alt="ヒント画像" class="hint-image">
+                    </div>
+                ` : ''}
+            </div>
             <p class="distance-info" id="distance-${point.id}">距離: ---</p>
             <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>QRコードをスキャン</button>
         `;
