@@ -255,27 +255,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const steps = [
             { 
                 title: 'ステップ1: ラリーの基本設定', 
-                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step1.JPG', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step1.JPG', 
                 description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。これらは参加者が見る最初の画面と最後の画面になります。' 
             },
             { 
                 title: 'ステップ2: ポイントの基本情報', 
-                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step2.JPG', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step2.JPG', 
                 description: '「スタンプポイントを追加」ボタンでポイントを増やせます。各ポイントの「名前」と「緯度・経度」を設定しましょう。「地図から座標を取得」を使うと、地図をクリックして簡単に座標を入力できます。' 
             },
             { 
                 title: 'ステップ3: ヒントとヒント画像', 
-                image: '', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step3.JPG', 
                 description: '参加者への「ヒント」をテキストで入力します。さらに、「ヒント画像を追加」ボタンから画像を設定することも可能です。謎解きの鍵となる画像などを設定しましょう。' 
             },
             { 
                 title: 'ステップ4: 達成画像とQRコード', 
-                image: '', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step4.JPG', 
                 description: '「達成画像を選択」ボタンで、スタンプを押した時に表示される画像を設定します。設定後、その下にある「現地設置用QRコード」をダウンロードし、印刷して各ポイントに設置してください。' 
             },
             { 
                 title: 'ステップ5: ラリーの公開', 
-                image: '', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step5.JPG', 
                 description: 'すべての設定が終わったら、「共有URLを生成」ボタンを押します。表示されたURLまたはQRコードを参加者に共有すれば、ラリーを開始できます！' 
             }
         ];
