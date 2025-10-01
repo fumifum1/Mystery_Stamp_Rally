@@ -1,7 +1,6 @@
 /* グローバルスタイル */
 body {
     font-family: 'Noto Sans JP', sans-serif;
-    background-color: #2c3e50; /* 深い青 */
     color: #ecf0f1; /* 明るいグレー */
     margin: 0;
     padding: 20px;
@@ -9,6 +8,11 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+
+    /* --- 和柄「麻の葉」の背景（縮小版） --- */
+    background-color: #2c3e50; /* ベースの背景色 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38.97' height='45'%3E%3Cpath d='M19.485 0 L0 11.25 L0 33.75 L19.485 45 L38.97 33.75 L38.97 11.25 Z M19.485 22.5 L0 11.25 M19.485 22.5 L0 33.75 M19.485 22.5 L19.485 45 M19.485 22.5 L38.97 33.75 M19.485 22.5 L38.97 11.25 M19.485 22.5 L19.485 0' stroke='%23ffffff' stroke-width='1' fill='none' opacity='0.07'/%3E%3C/svg%3E");
+    background-size: 30px 30px; /* SVGのwidthとheightと同じサイズを指定 */
 }
 
 .container {
