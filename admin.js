@@ -19,9 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 画像設定の定数
     const MAX_IMAGE_WIDTH = 400; // 画像の最大幅
     const MAX_IMAGE_HEIGHT = 400; // 画像の最大高さ
-    const IMAGE_QUALITY = 0.8; // 縮小時の画質 (JPEG)
-    const MAX_FILE_SIZE_MB = 1; // 警告を出すファイルサイズ(MB)
-    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+    const NORMAL_IMAGE_QUALITY = 0.8; // 通常のリサイズ時の画質
+    const HIGH_COMPRESSION_QUALITY = 0.6; // 高圧縮時の画質
+    const LARGE_FILE_THRESHOLD_MB = 1; // 高圧縮を適用するファイルサイズの閾値(MB)
+    const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
+    const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
 
     let currentStampPoints = [];
     const mapInstances = {}; // 地図のインスタンスを保持するオブジェクト
@@ -450,14 +452,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = event.target.files[0];
  
             if (file && point) {
-                if (file.size > MAX_FILE_SIZE_BYTES) {
-                    alert(`ファイルサイズが大きすぎます。\n${MAX_FILE_SIZE_MB}MB以下の画像を選択してください。`);
+                try {
+                    syncDataFromUI(); // 他のフォームの値をデータに同期
+                    const resizedImageSrc = await processAndResizeImage(file);
+                    point.stampedImageSrc = resizedImageSrc;
+                    renderUI(); // 画像処理が終わったらUIを再描画して反映
+                } catch (error) {
+                    alert(error.message);
                     event.target.value = ''; // ファイル選択をリセット
-                    return;
                 }
-                syncDataFromUI(); // 他のフォームの値をデータに同期
-                point.stampedImageSrc = await processAndResizeImage(file);
-                renderUI(); // 画像処理が終わったらUIを再描画して反映
             }
         }
         // ヒント画像アップロードの処理
@@ -465,16 +468,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const index = parseInt(event.target.dataset.index, 10);
             const point = currentStampPoints[index];
             const file = event.target.files[0];
-
+ 
             if (file && point) {
-                if (file.size > MAX_FILE_SIZE_BYTES) {
-                    alert(`ファイルサイズが大きすぎます。\n${MAX_FILE_SIZE_MB}MB以下の画像を選択してください。`);
+                try {
+                    syncDataFromUI(); // 他のフォームの値をデータに同期
+                    const resizedImageSrc = await processAndResizeImage(file);
+                    point.hintImageSrc = resizedImageSrc;
+                    renderUI(); // 画像処理が終わったらUIを再描画して反映
+                } catch (error) {
+                    alert(error.message);
                     event.target.value = ''; // ファイル選択をリセット
-                    return;
                 }
-                syncDataFromUI(); // 他のフォームの値をデータに同期
-                point.hintImageSrc = await processAndResizeImage(file);
-                renderUI(); // 画像処理が終わったらUIを再描画して反映
             }
         }
     });
@@ -482,6 +486,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 画像リサイズ処理
     async function processAndResizeImage(file) {
         return new Promise((resolve, reject) => {
+            // ファイルサイズに応じて圧縮品質を決定
+            const quality = file.size > LARGE_FILE_THRESHOLD_BYTES ? HIGH_COMPRESSION_QUALITY : NORMAL_IMAGE_QUALITY;
+
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onerror = reject;
@@ -504,8 +511,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // JPEG形式で品質を指定してBase64文字列を取得
-                    resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
+                    // JPEG形式で品質を指定してDataURLを取得
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+                    // リサイズ後のデータサイズが大きすぎる場合はエラーを投げる
+                    if (dataUrl.length > MAX_DATA_URL_SIZE_BYTES) {
+                        return reject(new Error('画像ファイルが非常に大きいため、処理できませんでした。\nお手数ですが、より小さいサイズの画像を選択してください。'));
+                    }
+                    resolve(dataUrl);
                 };
             };
         });
