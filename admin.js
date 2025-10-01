@@ -71,8 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="lon-${index}">経度:</label>
                     <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
                 </div>
-                <div class="admin-form-group">
+                <div class="admin-form-group map-toggle-group">
                     <a href="#" class="map-toggle-link" data-index="${index}">地図から座標を取得 ▼</a>
+                </div>
+                <div class="admin-form-group map-container-group">
                     <div id="map-wrapper-${index}" class="map-wrapper">
                         <div id="map-${index}" class="map-container"></div>
                     </div>
@@ -251,12 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const steps = [
             { 
                 title: 'ステップ1: ラリーの基本設定', 
-                image: '', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step1.JPG', // 画像は後で設定
                 description: 'まず、スタンプラリーの「タイトル」と、クリアした時の「コンプリート時メッセージ」を入力します。これらは参加者が見る最初の画面と最後の画面になります。' 
             },
             { 
                 title: 'ステップ2: ポイントの基本情報', 
-                image: '', // 画像は後で設定
+                image: 'https://fumifum1.github.io/Mystery_Stamp_Rally/tutorial_images/step2.JPG', // 画像は後で設定
                 description: '「スタンプポイントを追加」ボタンでポイントを増やせます。各ポイントの「名前」と「緯度・経度」を設定しましょう。「地図から座標を取得」を使うと、地図をクリックして簡単に座標を入力できます。' 
             },
             { 

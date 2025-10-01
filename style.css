@@ -558,6 +558,20 @@ textarea#completion-message {
     max-height: 300px; /* map-containerの高さ + marginより大きい値 */
 }
 /* 管理者ページのプレビュー画像コンテナ */
+.map-toggle-group {
+    /* Flexboxを解除して通常のブロック要素に戻す */
+    display: block;
+    margin-bottom: 0; /* 下の地図コンテナとの間隔を詰める */
+}
+.map-toggle-group .map-toggle-link {
+    /* ラベルと同じ幅の左マージンを追加してインデントを揃える */
+    margin-left: 80px;
+}
+.map-container-group {
+    display: block;
+    margin-top: 5px; /* 上のリンクとの間隔を少し空ける */
+}
+
 .admin-media-container {
     display: flex;
     justify-content: space-around;
