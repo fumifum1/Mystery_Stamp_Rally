@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('admin-stamp-points-container');
     const saveButton = document.getElementById('save-button');
     const addButton = document.getElementById('add-point-button');
+    const previewButton = document.getElementById('preview-button');
     // モーダル関連の要素
     const shareModal = document.getElementById('share-modal');
     const shareModalCloseBtn = document.getElementById('share-modal-close-btn');
@@ -524,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    saveButton.addEventListener('click', async () => {
+    saveButton.addEventListener('click', () => {
         try {
             syncDataFromUI();
  
@@ -537,7 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
  
-            // コンプリートメッセージを取得
             const rallyTitle = document.getElementById('rally-title').value;
             const completionMessage = document.getElementById('completion-message').value;
 
@@ -560,68 +560,92 @@ document.addEventListener('DOMContentLoaded', () => {
  
             saveButton.disabled = true;
             saveButton.textContent = 'URLを生成中...';
- 
-            // データ保管サービスを jsonblob.com に変更
-            const response = await fetch('https://jsonblob.com/api/jsonBlob', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(dataToUpload)
-            });
- 
-            if (!response.ok) {
-                // エラーレスポンスがJSON形式でない場合も考慮
-                const errorText = await response.text();
-                throw new Error(`データ保管庫の作成に失敗しました (Status: ${response.status}): ${errorText}`);
-            }
- 
-            // jsonblob.comはレスポンスヘッダーのLocationにURLを返す
-            const locationUrl = response.headers.get('Location');
-            if (!locationUrl) {
-                throw new Error('データ保管庫のURLが取得できませんでした。');
-            }
-            const binId = locationUrl.substring(locationUrl.lastIndexOf('/') + 1);
- 
-            const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
-            const fullUrl = `${baseUrl}?bin=${binId}`;
- 
-            // モーダルにURLとQRコードを設定
-            modalUrlOutput.value = fullUrl;
-            modalQrcodeElement.innerHTML = '';
-            const qrCode = new QRCodeStyling({
-                width: 200,
-                height: 200,
-                data: fullUrl,
-                margin: 0,
-                qrOptions: { errorCorrectionLevel: 'H' },
-                dotsOptions: {
-                    type: 'dots',
-                    color: '#3498db',
-                    gradient: {
-                        type: 'linear',
-                        rotation: 90,
-                        colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }]
-                    }
-                },
-                cornersSquareOptions: { type: 'dot', color: '#e67e22' },
-                cornersDotOptions: { type: 'dot', color: '#e67e22' },
-                backgroundOptions: { color: '#ffffff' },
-                imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
-                image: createTextDataUrl('Rally')
-            });
-            
-            qrCode.append(modalQrcodeElement);
-            
-            // モーダルを表示
-            shareModal.classList.add('show');
+
+            // 非同期処理をsetTimeoutでラップして、UIの更新を確実にする
+            setTimeout(() => {
+                try {
+                    const jsonString = JSON.stringify(dataToUpload);
+                    // 1. データを圧縮してUint8Array（バイナリデータ）として受け取る
+                    const compressed = pako.deflate(jsonString);
+                    // 2. バイナリデータを安全にBase64文字列にエンコードする
+                    const encoded = uint8ArrayToBase64(compressed);
+                    const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
+                    const fullUrl = `${baseUrl}?data=${encoded}`;
+
+                    modalUrlOutput.value = fullUrl;
+                    modalQrcodeElement.innerHTML = '';
+                    const qrCode = new QRCodeStyling({
+                        width: 200, height: 200, data: fullUrl, margin: 0,
+                        qrOptions: { errorCorrectionLevel: 'H' },
+                        dotsOptions: { type: 'dots', color: '#3498db', gradient: { type: 'linear', rotation: 90, colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }] } },
+                        cornersSquareOptions: { type: 'dot', color: '#e67e22' },
+                        cornersDotOptions: { type: 'dot', color: '#e67e22' },
+                        backgroundOptions: { color: '#ffffff' },
+                        imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
+                        image: createTextDataUrl('Rally')
+                    });
+                    qrCode.append(modalQrcodeElement);
+                    shareModal.classList.add('show');
+                } catch (e) {
+                    // URLが長すぎると、btoaでエラーが発生することがある
+                    console.error("URL生成中のエンコードエラー:", e);
+                    alert("URLの生成に失敗しました。データが大きすぎる可能性があります。\n\nヒントの文字数や画像のサイズ・枚数を減らして再度お試しください。");
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.textContent = '共有URLを生成';
+                }
+            }, 10); // 10msの遅延でUI更新を待つ
         } catch (error) {
             console.error('URL生成エラー:', error);
             alert(`URLの生成に失敗しました: ${error.message}\n\n時間をおいて再度お試しください。`);
         } finally {
             saveButton.disabled = false;
             saveButton.textContent = '共有URLを生成';
+        }
+    });
+
+    /**
+     * Uint8ArrayをBase64文字列に変換します。
+     * btoa()が大きなバイナリ文字列を扱えない問題を回避するため、チャンクに分割して処理します。
+     * @param {Uint8Array} bytes 変換するバイナリデータ
+     * @returns {string} Base64エンコードされた文字列
+     */
+    function uint8ArrayToBase64(bytes) {
+        let binary = '';
+        const len = bytes.byteLength;
+        const chunkSize = 8192; // チャンクサイズ
+        for (let i = 0; i < len; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+    }
+
+
+    // プレビューボタンのイベントリスナー
+    previewButton.addEventListener('click', () => {
+        try {
+            syncDataFromUI(); // UIから最新のデータを取得
+
+            const rallyTitle = document.getElementById('rally-title').value;
+            const completionMessage = document.getElementById('completion-message').value;
+
+            // プレビュー用のデータオブジェクトを作成
+            const previewData = {
+                title: rallyTitle,
+                completionMessage: completionMessage,
+                points: currentStampPoints
+            };
+
+            // localStorageにプレビューデータを保存
+            localStorage.setItem('rallyPreviewData', JSON.stringify(previewData));
+
+            // プレビューモードでmspr.htmlを新しいタブで開く
+            const previewUrl = 'mspr.html?preview=true';
+            window.open(previewUrl, '_blank');
+
+        } catch (error) {
+            alert(`プレビューの生成に失敗しました: ${error.message}`);
         }
     });
 

@@ -87,11 +87,41 @@ function createStampCards() {
 // localStorageからスタンプポイントの座標データを読み込む
 async function loadStampPoints() {
     const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get('data');
     const binId = urlParams.get('bin');
     let pointsData = null;
+    const isPreview = urlParams.get('preview') === 'true';
 
-    // 1. URLに 'bin' パラメータがあれば、jsonblob.comから設定を読み込む
-    if (binId) {
+    // 0. プレビューモードの場合、localStorageから設定を読み込む
+    if (isPreview) {
+        try {
+            const previewData = localStorage.getItem('rallyPreviewData');
+            if (previewData) {
+                pointsData = JSON.parse(previewData);
+                console.log("プレビューモード: localStorageから設定を読み込みました。");
+            }
+        } catch (e) {
+            console.error("プレビューデータの解析に失敗しました。", e);
+            alert("プレビューの読み込みに失敗しました。");
+        }
+    }
+    // 1. URLに 'data' パラメータがあれば、そこから設定を読み込む (新しい方式)
+    if (dataParam) {
+        stampedDataStorageKey = `stampedData_${dataParam.substring(0, 10)}`; // URLの一部をキーにする
+        try {
+            console.log("URLパラメータから設定を読み込みます。");
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            // pakoで解凍
+            const decompressed = pako.inflate(bytes, { to: 'string' });
+            pointsData = JSON.parse(decompressed);
+            console.log("URLからスタンプポイントを正常に読み込みました。");
+        } catch (e) {
+            console.error("URLパラメータの解析に失敗しました。", e);
+            alert("スタンプラリーの設定を読み込めませんでした。URLが壊れている可能性があります。");
+        }
+    } else if (binId) { // 2. URLに 'bin' パラメータがあれば、jsonblob.comから設定を読み込む (古い方式へのフォールバック)
         stampedDataStorageKey = `stampedData_${binId}`; // ラリー固有の保存キーを設定
         try {
             console.log(`jsonblob.comから設定を読み込みます (Bin ID: ${binId})`);
@@ -107,7 +137,7 @@ async function loadStampPoints() {
         }
     }
 
-    // 2. URLパラメータがない場合、rally_config.json を試みる
+    // 3. URLパラメータがない場合、rally_config.json を試みる
     if (!pointsData) {
         try {
             const response = await fetch('rally_config.json');
@@ -120,7 +150,7 @@ async function loadStampPoints() {
         }
     }
 
-    // 3. それでもデータがなければ、デフォルト設定を使用
+    // 4. それでもデータがなければ、デフォルト設定を使用
     if (pointsData && pointsData.points && Array.isArray(pointsData.points)) {
         // 新形式のデータ (completionMessage と points を含むオブジェクト)
         state.rallyConfig = pointsData;
