@@ -51,6 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
             point.qrRequired = qrRequiredInput ? qrRequiredInput.checked : (point.qrRequired !== undefined ? point.qrRequired : true);
             const labelInput = document.getElementById(`btn-label-${index}`);
             point.acquisitionButtonLabel = labelInput ? labelInput.value : (point.acquisitionButtonLabel || 'スタンプをゲット！');
+            
+            // 座標設定方法の同期（隠れていてもデータとして保持）
+            const coordMethodInput = pointElements[index].querySelector('.method-tab.active');
+            point.coordMethod = coordMethodInput ? coordMethodInput.dataset.method : (point.coordMethod || 'map');
+
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
     }
@@ -70,29 +75,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="name-${index}">名前:</label>
                     <input type="text" id="name-${index}" value="${point.name || ''}">
                 </div>
-                <div class="admin-form-group">
-                    <label for="lat-${index}">緯度:</label>
-                    <input type="number" step="any" id="lat-${index}" value="${point.latitude || 0}">
-                </div>
-                <div class="admin-form-group">
-                    <label for="lon-${index}">経度:</label>
-                    <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
-                </div>
-                <div class="admin-form-group checkbox-group">
-                    <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
-                    <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
-                </div>
-                <div class="admin-form-group" style="${point.qrRequired !== false ? 'display: none;' : ''}">
-                    <label for="btn-label-${index}" style="width: 100px;">ボタンの文字:</label>
-                    <input type="text" id="btn-label-${index}" value="${point.acquisitionButtonLabel || 'スタンプをゲット！'}">
-                </div>
-                <div class="admin-form-group map-toggle-group">
-                    <a href="#" class="map-toggle-link" data-index="${index}">地図から座標を取得 ▼</a>
-                </div>
-                <div class="admin-form-group map-container-group">
-                    <div id="map-wrapper-${index}" class="map-wrapper">
-                        <div id="map-${index}" class="map-container"></div>
+                <div class="admin-form-group coord-selector-wrapper">
+                    <label>座標の設定方法:</label>
+                    <div class="coord-method-tabs">
+                        <button type="button" class="method-tab ${(!point.coordMethod || point.coordMethod === 'map') ? 'active' : ''}" data-index="${index}" data-method="map">地図から取得</button>
+                        <button type="button" class="method-tab ${point.coordMethod === 'manual' ? 'active' : ''}" data-index="${index}" data-method="manual">手動入力</button>
+                        <button type="button" class="method-tab ${point.coordMethod === 'current' ? 'active' : ''}" data-index="${index}" data-method="current">現在地から取得</button>
                     </div>
+                </div>
+
+                <!-- 手動入力セクション -->
+                <div class="coord-section manual-section" style="${point.coordMethod === 'manual' ? '' : 'display: none;'}">
+                    <div class="admin-form-group">
+                        <label for="lat-${index}">緯度:</label>
+                        <input type="number" step="any" id="lat-${index}" value="${point.latitude || 0}">
+                    </div>
+                    <div class="admin-form-group">
+                        <label for="lon-${index}">経度:</label>
+                        <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
+                    </div>
+                </div>
+
+                <!-- 地図から取得セクション -->
+                <div class="coord-section map-section" style="${(!point.coordMethod || point.coordMethod === 'map') ? '' : 'display: none;'}">
+                    <div class="admin-form-group map-container-group">
+                        <div id="map-wrapper-${index}" class="map-wrapper show">
+                            <div id="map-${index}" class="map-container"></div>
+                        </div>
+                    </div>
+                    <p class="coord-hint">地図をクリックして座標を指定してください</p>
+                </div>
+
+                <!-- 現在地から取得セクション -->
+                <div class="coord-section current-section" style="${point.coordMethod === 'current' ? '' : 'display: none;'}">
+                    <div class="admin-form-group">
+                        <button type="button" class="btn btn-secondary get-location-btn" data-index="${index}">現在地の座標を取得して入力</button>
+                    </div>
+                </div>
+
+                <!-- 取得済み座標の確認用（地図・現在地モード時のみ表示） -->
+                <div class="coord-display-info" style="${point.coordMethod === 'manual' ? 'display: none;' : ''}">
+                    <p>設定中の座標: <span id="display-lat-${index}">${point.latitude}</span>, <span id="display-lon-${index}">${point.longitude}</span></p>
+                    <input type="hidden" id="hidden-lat-${index}" value="${point.latitude || 0}">
+                    <input type="hidden" id="hidden-lon-${index}" value="${point.longitude || 0}">
                 </div>
                 <div class="admin-form-group">
                     <label for="hint-${index}">ヒント:</label>
@@ -192,10 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 map.on('click', function(e) {
                     const clickedLat = e.latlng.lat;
                     const clickedLon = e.latlng.lng;
+                    const latVal = clickedLat.toFixed(6);
+                    const lonVal = clickedLon.toFixed(6);
 
-                    // フォームの値を更新
-                    latInput.value = clickedLat.toFixed(6);
-                    lonInput.value = clickedLon.toFixed(6);
+                    // フォームと非表示の値を更新
+                    if (latInput) latInput.value = latVal;
+                    if (lonInput) lonInput.value = lonVal;
+                    
+                    const hiddenLat = document.getElementById(`hidden-lat-${index}`);
+                    const hiddenLon = document.getElementById(`hidden-lon-${index}`);
+                    if (hiddenLat) hiddenLat.value = latVal;
+                    if (hiddenLon) hiddenLon.value = lonVal;
+
+                    const displayLat = document.getElementById(`display-lat-${index}`);
+                    const displayLon = document.getElementById(`display-lon-${index}`);
+                    if (displayLat) displayLat.textContent = latVal;
+                    if (displayLon) displayLon.textContent = lonVal;
 
                     // マーカーの位置を更新
                     marker.setLatLng(e.latlng);
@@ -249,7 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stampedImageSrc: '',
             hint: '',
             hintImageSrc: '', // ヒント画像用のプロパティを追加
-            qrRequired: true
+            qrRequired: true,
+            coordMethod: 'map'
         });
         renderUI();
     });
@@ -404,23 +442,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // スタンプカードコンテナ内のイベントをまとめて処理（イベント委任）
     container.addEventListener('click', async (event) => {
-        // 地図表示切り替えリンクの処理
-        const mapToggleLink = event.target.closest('.map-toggle-link');
-        if (mapToggleLink) {
-            event.preventDefault();
-            const index = mapToggleLink.dataset.index;
-            const mapWrapper = document.getElementById(`map-wrapper-${index}`);
-            if (mapWrapper) {
-                const isOpening = !mapWrapper.classList.contains('show');
-                mapWrapper.classList.toggle('show');
-                mapToggleLink.textContent = mapWrapper.classList.contains('show') ? '地図を閉じる ▲' : '地図から座標を取得 ▼';
-                // 地図が開かれたときにサイズを再計算
-                if (isOpening && mapInstances[index]) {
-                    setTimeout(() => mapInstances[index].invalidateSize(), 300); // アニメーション完了後に実行
-                }
+        // 座標設定方法の切り替え処理
+        const methodTab = event.target.closest('.method-tab');
+        if (methodTab) {
+            syncDataFromUI();
+            const index = parseInt(methodTab.dataset.index, 10);
+            const method = methodTab.dataset.method;
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].coordMethod = method;
+                renderUI();
             }
             return;
         }
+
+        // 現在地の座標を取得ボタンの処理
+        const getLocationBtn = event.target.closest('.get-location-btn');
+        if (getLocationBtn) {
+            const index = parseInt(getLocationBtn.dataset.index, 10);
+            if (!navigator.geolocation) {
+                alert("お使いのブラウザは位置情報をサポートしていません。");
+                return;
+            }
+
+            getLocationBtn.disabled = true;
+            getLocationBtn.textContent = "取得中...";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    
+                    // データを更新
+                    currentStampPoints[index].latitude = parseFloat(lat);
+                    currentStampPoints[index].longitude = parseFloat(lon);
+                    
+                    alert("現在地を取得しました。");
+                    renderUI(); // 画面を更新して値を表示
+                },
+                (error) => {
+                    console.error("位置情報取得エラー:", error);
+                    alert("位置情報の取得に失敗しました。設定を確認してください。");
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.textContent = "現在地の座標を取得して入力";
+                },
+                { enableHighAccuracy: true }
+            );
+            return;
+        }
+
+        // 地図表示切り替えリンクの処理 (これは廃止されたが念のため互換性維持するか削除するか。今回はUIから消したので削除気味)
         // QRコードダウンロードボタンの処理
         const downloadButton = event.target.closest('.download-btn[data-point-index]');
         if (downloadButton) {
@@ -430,22 +500,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
             if (qrCanvas) {
                 const link = document.createElement('a');
-                // ファイル名にポイント名を含める
                 const pointName = currentStampPoints[index]?.name.replace(/\s+/g, '_') || `point_${index + 1}`;
                 link.download = `point-qrcode-${pointName}.png`;
                 link.href = qrCanvas.toDataURL('image/png');
                 link.click();
             }
-            return; // 他の処理と競合しないようにここで終了
+            return;
         }
 
-        // ヒント画像削除ボタンの処理 (ポイント削除より先にチェック)
+        // ヒント画像削除ボタンの処理
         const deleteHintImageBtn = event.target.closest('.delete-hint-image-btn');
         if (deleteHintImageBtn) {
             const index = parseInt(deleteHintImageBtn.dataset.index, 10);
             if (currentStampPoints[index]) {
                 currentStampPoints[index].hintImageSrc = '';
-                renderUI(); // UIを再描画して反映
+                renderUI();
             }
             return;
         }
@@ -721,7 +790,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 stampedImageSrc: '',
                 hint: '例：東京駅',
                 hintImageSrc: '', // ヒント画像用のプロパティを追加
-                qrRequired: true
+                qrRequired: true,
+                coordMethod: 'map'
             }
         ];
 
