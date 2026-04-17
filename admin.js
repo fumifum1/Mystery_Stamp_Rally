@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3 class="card-title">ポイント ${index + 1}</h3>
                     <button class="delete-btn" data-index="${index}" title="このポイントを削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
                 </div>
-                <div class="admin-form-group">
-                    <label for="name-${index}">名前:</label>
-                    <input type="text" id="name-${index}" value="${point.name || ''}">
+                <div class="admin-form-group vertical-group">
+                    <label for="name-${index}">ポイントタイトル:</label>
+                    <input type="text" id="name-${index}" value="${point.name || ''}" placeholder="例：東京駅">
                 </div>
                 <div class="admin-form-group coord-selector-wrapper">
                     <label>座標の設定方法:</label>
@@ -82,6 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>手動入力</option>
                         <option value="current" ${point.coordMethod === 'current' ? 'selected' : ''}>現在地から取得</option>
                     </select>
+                </div>
+                <div class="admin-form-group checkbox-group">
+                    <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
+                    <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
+                </div>
+                <div class="admin-form-group" style="${point.qrRequired !== false ? 'display: none;' : ''}">
+                    <label for="btn-label-${index}" style="width: 140px;">取得ボタンの文字:</label>
+                    <input type="text" id="btn-label-${index}" value="${point.acquisitionButtonLabel || 'スタンプをゲット！'}">
                 </div>
 
                 <!-- 各セクションを保持するコンテナ -->

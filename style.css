@@ -912,6 +912,27 @@ textarea#completion-message {
   background: #00b5ad;
 }
 
+/* 垂直レイアウト（ラベルと入力を縦に並べる） */
+.vertical-group {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+}
+
+.vertical-group label {
+    width: 100% !important;
+    margin-bottom: 2px !important;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.vertical-group input {
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 12px !important;
+    font-size: 1.1rem !important;
+}
+
 /* 座標設定方法の選択UI */
 .coord-selector-wrapper {
     display: flex;
