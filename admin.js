@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 達成画像未設定時のデフォルトプレビュー画像
+    const ADMIN_DEFAULT_STAMP_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232ecc71' stroke='%2327ae60' stroke-width='3'/%3E%3Ctext x='50' y='62' font-family='sans-serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";
     let mapInstances = {}; // 各スタンプカードの地図インスタンスを保持
     let modalMapInstance = null; // 拡大地図モーダル用の地図インスタンス
     let editingPointIndexForModal = null; // 現在モーダルで編集中のポイントインデックス
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                     <div class="media-item">
                         <p>画像プレビュー（スタンプ達成時に表示されます）</p>
-                        <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
+                        <img id="image-preview-${index}" src="${point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped' ? point.stampedImageSrc : ADMIN_DEFAULT_STAMP_IMG}" alt="画像プレビュー" class="stamp-icon">
                     </div>
                     <div class="media-item" style="${point.qrRequired === false ? 'display: none;' : ''}">
                         <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
@@ -183,13 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             container.appendChild(pointElement);
- 
-            // 地図の初期化（インライン地図は削除または最小化されたため、ここでの処理は不要になりました）
-            // QRコード生成などの他のDOM後処理があればここに記述
         });
+
+        // QRコード生成（DOM追加後に実行）
+        currentStampPoints.forEach((point, index) => {
             setTimeout(() => {
                 const qrCodeElement = document.getElementById(`qrcode-${index}`);
-                if (qrCodeElement) {
+                if (qrCodeElement && point.qrRequired !== false) {
                     const qrText = point.id; // QRコードには常にIDのみを格納
                     // 念のため、生成前に中身をクリア
                     qrCodeElement.innerHTML = '';
@@ -389,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    container.addEventListener('click', (event) => {
         // 拡大地図モーダルを開くボタン
         const openMapModalBtn = event.target.closest('.open-map-modal-btn');
         if (openMapModalBtn) {
@@ -447,14 +450,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = qrCanvas.toDataURL('image/png');
                 link.click();
             }
-            return;
-        }
-
-        // 拡大地図モーダルを開くボタン
-        const openMapModalBtn = event.target.closest('.open-map-modal-btn');
-        if (openMapModalBtn) {
-            const index = parseInt(openMapModalBtn.dataset.index, 10);
-            openMapModal(index);
             return;
         }
 
