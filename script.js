@@ -78,7 +78,7 @@ function createStampCards() {
                 ` : ''}
             </div>
             <p class="distance-info" id="distance-${point.id}">距離: ---</p>
-            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>${point.qrRequired !== false ? 'QRコードをスキャン' : 'スタンプをゲット！'}</button>
+            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>${point.qrRequired !== false ? 'QRコードをスキャン' : (point.acquisitionButtonLabel || 'スタンプをゲット！')}</button>
         `;
         dom.stampCardsContainer.appendChild(card);
     });

@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             point.hint = hintInput ? hintInput.value : point.hint;
             const qrRequiredInput = document.getElementById(`qr-required-${index}`);
             point.qrRequired = qrRequiredInput ? qrRequiredInput.checked : (point.qrRequired !== undefined ? point.qrRequired : true);
+            const labelInput = document.getElementById(`btn-label-${index}`);
+            point.acquisitionButtonLabel = labelInput ? labelInput.value : (point.acquisitionButtonLabel || 'スタンプをゲット！');
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
     }
@@ -79,6 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group checkbox-group">
                     <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
                     <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
+                </div>
+                <div class="admin-form-group" style="${point.qrRequired !== false ? 'display: none;' : ''}">
+                    <label for="btn-label-${index}" style="width: 100px;">ボタンの文字:</label>
+                    <input type="text" id="btn-label-${index}" value="${point.acquisitionButtonLabel || 'スタンプをゲット！'}">
                 </div>
                 <div class="admin-form-group map-toggle-group">
                     <a href="#" class="map-toggle-link" data-index="${index}">地図から座標を取得 ▼</a>
@@ -458,6 +464,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.addEventListener('change', async (event) => {
+        // QR必須チェックボックスの切り替えを即座に反映
+        if (event.target.id && event.target.id.startsWith('qr-required-')) {
+            syncDataFromUI();
+            renderUI();
+            return;
+        }
         // 画像アップロードの処理
         if (event.target.matches('.image-upload-input')) {
             const index = parseInt(event.target.dataset.index, 10);
