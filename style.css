@@ -918,34 +918,42 @@ textarea#completion-message {
     align-items: flex-start !important;
 }
 
-.coord-method-tabs {
+.coord-method-radios {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-top: 10px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
-.method-tab {
+.method-radio-label {
     flex: 1;
-    padding: 10px 5px;
-    font-size: 0.85rem;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
     background-color: #5a6493;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 500;
+    border: 2px solid transparent;
 }
 
-.method-tab:hover {
-    background-color: #707aba;
+.method-radio-label:hover {
+    background-color: #6a74a3;
 }
 
-.method-tab.active {
-    background-color: #3498db;
+/* チェックされた時のラベルスタイル (JSで制御するかCSSの隣接セレクタを使用) */
+.method-radio:checked + span {
     font-weight: bold;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
+}
+
+/* ラジオボタン自体の色調整（ブラウザ標準を活かしつつ） */
+.method-radio {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
 }
 
 .coord-section {
@@ -956,6 +964,17 @@ textarea#completion-message {
     border-radius: 8px;
     border: 1px solid #7f8c8d;
     box-sizing: border-box;
+    /* スムーズな表示切り替えのためのアニメーション */
+    animation: fadeInSection 0.3s ease-out;
+}
+
+@keyframes fadeInSection {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.coord-sections-container {
+    min-height: 120px; /* 切り替え時のガクつきを抑えるための最小高さ */
 }
 
 .coord-hint {

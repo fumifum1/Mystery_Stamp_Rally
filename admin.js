@@ -52,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const labelInput = document.getElementById(`btn-label-${index}`);
             point.acquisitionButtonLabel = labelInput ? labelInput.value : (point.acquisitionButtonLabel || 'スタンプをゲット！');
             
-            // 座標設定方法の同期（隠れていてもデータとして保持）
-            const coordMethodInput = pointElements[index].querySelector('.method-tab.active');
-            point.coordMethod = coordMethodInput ? coordMethodInput.dataset.method : (point.coordMethod || 'map');
+            // 座標設定方法の同期
+            const checkedRadio = pointElements[index].querySelector('input[name="coord-method-' + index + '"]:checked');
+            point.coordMethod = checkedRadio ? checkedRadio.value : (point.coordMethod || 'map');
 
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
@@ -77,44 +77,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="admin-form-group coord-selector-wrapper">
                     <label>座標の設定方法:</label>
-                    <div class="coord-method-tabs">
-                        <button type="button" class="method-tab ${(!point.coordMethod || point.coordMethod === 'map') ? 'active' : ''}" data-index="${index}" data-method="map">地図から取得</button>
-                        <button type="button" class="method-tab ${point.coordMethod === 'manual' ? 'active' : ''}" data-index="${index}" data-method="manual">手動入力</button>
-                        <button type="button" class="method-tab ${point.coordMethod === 'current' ? 'active' : ''}" data-index="${index}" data-method="current">現在地から取得</button>
+                    <div class="coord-method-radios">
+                        <label class="method-radio-label">
+                            <input type="radio" name="coord-method-${index}" value="map" class="method-radio" data-index="${index}" ${(!point.coordMethod || point.coordMethod === 'map') ? 'checked' : ''}>
+                            <span>地図から取得</span>
+                        </label>
+                        <label class="method-radio-label">
+                            <input type="radio" name="coord-method-${index}" value="manual" class="method-radio" data-index="${index}" ${point.coordMethod === 'manual' ? 'checked' : ''}>
+                            <span>手動入力</span>
+                        </label>
+                        <label class="method-radio-label">
+                            <input type="radio" name="coord-method-${index}" value="current" class="method-radio" data-index="${index}" ${point.coordMethod === 'current' ? 'checked' : ''}>
+                            <span>現在地から取得</span>
+                        </label>
                     </div>
                 </div>
 
-                <!-- 手動入力セクション -->
-                <div class="coord-section manual-section" style="${point.coordMethod === 'manual' ? '' : 'display: none;'}">
-                    <div class="admin-form-group">
-                        <label for="lat-${index}">緯度:</label>
-                        <input type="number" step="any" id="lat-${index}" value="${point.latitude || 0}">
-                    </div>
-                    <div class="admin-form-group">
-                        <label for="lon-${index}">経度:</label>
-                        <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
-                    </div>
-                </div>
-
-                <!-- 地図から取得セクション -->
-                <div class="coord-section map-section" style="${(!point.coordMethod || point.coordMethod === 'map') ? '' : 'display: none;'}">
-                    <div class="admin-form-group map-container-group">
-                        <div id="map-wrapper-${index}" class="map-wrapper show">
-                            <div id="map-${index}" class="map-container"></div>
+                <!-- 各セクションを保持するコンテナ -->
+                <div class="coord-sections-container">
+                    <!-- 手動入力セクション -->
+                    <div id="section-manual-${index}" class="coord-section manual-section" style="${point.coordMethod === 'manual' ? '' : 'display: none;'}">
+                        <div class="admin-form-group">
+                            <label for="lat-${index}">緯度:</label>
+                            <input type="number" step="any" id="lat-${index}" value="${point.latitude || 0}">
+                        </div>
+                        <div class="admin-form-group">
+                            <label for="lon-${index}">経度:</label>
+                            <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
                         </div>
                     </div>
-                    <p class="coord-hint">地図をクリックして座標を指定してください</p>
-                </div>
 
-                <!-- 現在地から取得セクション -->
-                <div class="coord-section current-section" style="${point.coordMethod === 'current' ? '' : 'display: none;'}">
-                    <div class="admin-form-group">
-                        <button type="button" class="btn btn-secondary get-location-btn" data-index="${index}">現在地の座標を取得して入力</button>
+                    <!-- 地図から取得セクション -->
+                    <div id="section-map-${index}" class="coord-section map-section" style="${(!point.coordMethod || point.coordMethod === 'map') ? '' : 'display: none;'}">
+                        <div class="admin-form-group map-container-group">
+                            <div id="map-wrapper-${index}" class="map-wrapper">
+                                <div id="map-${index}" class="map-container"></div>
+                            </div>
+                        </div>
+                        <p class="coord-hint">地図をクリックして座標を指定してください</p>
+                    </div>
+
+                    <!-- 現在地から取得セクション -->
+                    <div id="section-current-${index}" class="coord-section current-section" style="${point.coordMethod === 'current' ? '' : 'display: none;'}">
+                        <div class="admin-form-group">
+                            <button type="button" class="btn btn-secondary get-location-btn" data-index="${index}">現在地の座標を取得して入力</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 取得済み座標の確認用（地図・現在地モード時のみ表示） -->
-                <div class="coord-display-info" style="${point.coordMethod === 'manual' ? 'display: none;' : ''}">
+                <!-- 取得済み座標の確認用 -->
+                <div id="coord-info-${index}" class="coord-display-info" style="${point.coordMethod === 'manual' ? 'display: none;' : ''}">
                     <p>設定中の座標: <span id="display-lat-${index}">${point.latitude}</span>, <span id="display-lon-${index}">${point.longitude}</span></p>
                     <input type="hidden" id="hidden-lat-${index}" value="${point.latitude || 0}">
                     <input type="hidden" id="hidden-lon-${index}" value="${point.longitude || 0}">
@@ -442,15 +454,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // スタンプカードコンテナ内のイベントをまとめて処理（イベント委任）
     container.addEventListener('click', async (event) => {
-        // 座標設定方法の切り替え処理
-        const methodTab = event.target.closest('.method-tab');
-        if (methodTab) {
-            syncDataFromUI();
-            const index = parseInt(methodTab.dataset.index, 10);
-            const method = methodTab.dataset.method;
+        // 座標設定方法の切り替え処理 (ラジオボタン)
+        const methodRadio = event.target.closest('.method-radio');
+        if (methodRadio) {
+            // syncDataFromUI() は呼ばずに、該当部分だけを高速に切り替える
+            const index = parseInt(methodRadio.dataset.index, 10);
+            const method = methodRadio.value;
+            
             if (currentStampPoints[index]) {
                 currentStampPoints[index].coordMethod = method;
-                renderUI();
+                
+                // DOM要素の表示切り替え (renderUIを使わずに切り替え)
+                const card = methodRadio.closest('.stamp-card');
+                const sections = card.querySelectorAll('.coord-section');
+                sections.forEach(sec => sec.style.display = 'none');
+                
+                const targetSection = card.querySelector(`.coord-section.${method}-section`);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    // 地図の場合、表示された瞬間にサイズを再計算
+                    if (method === 'map' && mapInstances[index]) {
+                        setTimeout(() => mapInstances[index].invalidateSize(), 10);
+                    }
+                }
+                
+                // 確認用表示の制御
+                const infoSection = document.getElementById(`coord-info-${index}`);
+                if (infoSection) {
+                    infoSection.style.display = (method === 'manual') ? 'none' : 'block';
+                }
             }
             return;
         }
