@@ -110,6 +110,15 @@ async function loadStampPoints() {
         stampedDataStorageKey = `stampedData_${dataParam.substring(0, 10)}`; // URLの一部をキーにする
         try {
             console.log("URLパラメータから設定を読み込みます。");
+            // URL-safe Base64を標準Base64に戻す
+            let base64 = dataParam.replace(/-/g, '+').replace(/_/g, '/');
+            // パディングを復元
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
             for (let i = 0; i < len; i++) {
                 bytes[i] = binaryString.charCodeAt(i);
             }

@@ -568,7 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 1. データを圧縮してUint8Array（バイナリデータ）として受け取る
                     const compressed = pako.deflate(jsonString);
                     // 2. バイナリデータを安全にBase64文字列にエンコードする
-                    const encoded = uint8ArrayToBase64(compressed);
+                    const base64 = uint8ArrayToBase64(compressed);
+                    // URL-safe Base64に変換 (+→-, /→_, 末尾=を除去)
+                    const encoded = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                     const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
                     const fullUrl = `${baseUrl}?data=${encoded}`;
 
