@@ -28,12 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
     const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
 
-    let currentStampPoints = [];サイズの閾値(MB)
-    const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
-    const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
-
     let currentStampPoints = [];
-    const mapInstances = {}; // 地図のインスタンスを保持するオブジェクト
+    // mapInstances は冒頭で宣言済みのため、ここでは追加しない
+
  
     // UIから現在の入力値を読み取り、currentStampPointsに同期する
     function syncDataFromUI() {
