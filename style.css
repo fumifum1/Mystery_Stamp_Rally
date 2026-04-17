@@ -914,46 +914,22 @@ textarea#completion-message {
 
 /* 座標設定方法の選択UI */
 .coord-selector-wrapper {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-}
-
-.coord-method-radios {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    width: 100%;
-    flex-wrap: wrap;
-}
-
-.method-radio-label {
-    flex: 1;
-    min-width: 140px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    background-color: #5a6493;
-    border-radius: 6px;
+    width: 100%;
+}
+
+.method-select {
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    font-family: inherit;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-}
-
-.method-radio-label:hover {
-    background-color: #6a74a3;
-}
-
-/* チェックされた時のラベルスタイル (JSで制御するかCSSの隣接セレクタを使用) */
-.method-radio:checked + span {
-    font-weight: bold;
-}
-
-/* ラジオボタン自体の色調整（ブラウザ標準を活かしつつ） */
-.method-radio {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
+    width: calc(100% - 90px); /* ラベル幅に合わせて調整 */
 }
 
 .coord-section {
@@ -974,7 +950,7 @@ textarea#completion-message {
 }
 
 .coord-sections-container {
-    min-height: 120px; /* 切り替え時のガクつきを抑えるための最小高さ */
+    min-height: 100px; /* 切り替え時のガクつきを抑えるための最小高さ */
 }
 
 .coord-hint {

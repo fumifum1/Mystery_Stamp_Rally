@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
             point.acquisitionButtonLabel = labelInput ? labelInput.value : (point.acquisitionButtonLabel || 'スタンプをゲット！');
             
             // 座標設定方法の同期
-            const checkedRadio = pointElements[index].querySelector('input[name="coord-method-' + index + '"]:checked');
-            point.coordMethod = checkedRadio ? checkedRadio.value : (point.coordMethod || 'map');
+            const methodSelect = pointElements[index].querySelector('.method-select');
+            point.coordMethod = methodSelect ? methodSelect.value : (point.coordMethod || 'map');
 
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
@@ -77,20 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="admin-form-group coord-selector-wrapper">
                     <label>座標の設定方法:</label>
-                    <div class="coord-method-radios">
-                        <label class="method-radio-label">
-                            <input type="radio" name="coord-method-${index}" value="map" class="method-radio" data-index="${index}" ${(!point.coordMethod || point.coordMethod === 'map') ? 'checked' : ''}>
-                            <span>地図から取得</span>
-                        </label>
-                        <label class="method-radio-label">
-                            <input type="radio" name="coord-method-${index}" value="manual" class="method-radio" data-index="${index}" ${point.coordMethod === 'manual' ? 'checked' : ''}>
-                            <span>手動入力</span>
-                        </label>
-                        <label class="method-radio-label">
-                            <input type="radio" name="coord-method-${index}" value="current" class="method-radio" data-index="${index}" ${point.coordMethod === 'current' ? 'checked' : ''}>
-                            <span>現在地から取得</span>
-                        </label>
-                    </div>
+                    <select class="method-select" data-index="${index}">
+                        <option value="map" ${(!point.coordMethod || point.coordMethod === 'map') ? 'selected' : ''}>地図から取得</option>
+                        <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>手動入力</option>
+                        <option value="current" ${point.coordMethod === 'current' ? 'selected' : ''}>現在地から取得</option>
+                    </select>
                 </div>
 
                 <!-- 各セクションを保持するコンテナ -->
@@ -454,39 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // スタンプカードコンテナ内のイベントをまとめて処理（イベント委任）
     container.addEventListener('click', async (event) => {
-        // 座標設定方法の切り替え処理 (ラジオボタン)
-        const methodRadio = event.target.closest('.method-radio');
-        if (methodRadio) {
-            // syncDataFromUI() は呼ばずに、該当部分だけを高速に切り替える
-            const index = parseInt(methodRadio.dataset.index, 10);
-            const method = methodRadio.value;
-            
-            if (currentStampPoints[index]) {
-                currentStampPoints[index].coordMethod = method;
-                
-                // DOM要素の表示切り替え (renderUIを使わずに切り替え)
-                const card = methodRadio.closest('.stamp-card');
-                const sections = card.querySelectorAll('.coord-section');
-                sections.forEach(sec => sec.style.display = 'none');
-                
-                const targetSection = card.querySelector(`.coord-section.${method}-section`);
-                if (targetSection) {
-                    targetSection.style.display = 'block';
-                    // 地図の場合、表示された瞬間にサイズを再計算
-                    if (method === 'map' && mapInstances[index]) {
-                        setTimeout(() => mapInstances[index].invalidateSize(), 10);
-                    }
-                }
-                
-                // 確認用表示の制御
-                const infoSection = document.getElementById(`coord-info-${index}`);
-                if (infoSection) {
-                    infoSection.style.display = (method === 'manual') ? 'none' : 'block';
-                }
-            }
-            return;
-        }
-
         // 現在地の座標を取得ボタンの処理
         const getLocationBtn = event.target.closest('.get-location-btn');
         if (getLocationBtn) {
@@ -565,6 +523,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.addEventListener('change', async (event) => {
+        // 座標設定方法の切り替え処理 (プルダウン)
+        const methodSelect = event.target.closest('.method-select');
+        if (methodSelect) {
+            const index = parseInt(methodSelect.dataset.index, 10);
+            const method = methodSelect.value;
+            
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].coordMethod = method;
+                
+                // DOM要素の表示切り替え (renderUIを使わずに切り替え)
+                const card = methodSelect.closest('.stamp-card');
+                const sections = card.querySelectorAll('.coord-section');
+                sections.forEach(sec => sec.style.display = 'none');
+                
+                const targetSection = card.querySelector(`.coord-section.${method}-section`);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    // 地図の場合、表示された瞬間にサイズを再計算
+                    if (method === 'map' && mapInstances[index]) {
+                        setTimeout(() => mapInstances[index].invalidateSize(), 10);
+                    }
+                }
+                
+                // 確認用表示の制御
+                const infoSection = document.getElementById(`coord-info-${index}`);
+                if (infoSection) {
+                    infoSection.style.display = (method === 'manual') ? 'none' : 'block';
+                }
+            }
+            return;
+        }
+
         // QR必須チェックボックスの切り替えを即座に反映
         if (event.target.id && event.target.id.startsWith('qr-required-')) {
             syncDataFromUI();
