@@ -411,6 +411,22 @@ footer a:hover {
     resize: vertical;
     min-height: 80px;
 }
+.checkbox-group {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.checkbox-group input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0;
+    cursor: pointer;
+}
+.checkbox-group label {
+    width: auto !important;
+    cursor: pointer;
+}
 .qr-code-container {
     margin-top: 15px;
     padding: 15px;

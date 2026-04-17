@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
             point.latitude = latInput ? parseFloat(latInput.value) : point.latitude;
             point.longitude = lonInput ? parseFloat(lonInput.value) : point.longitude;
             point.hint = hintInput ? hintInput.value : point.hint;
+            const qrRequiredInput = document.getElementById(`qr-required-${index}`);
+            point.qrRequired = qrRequiredInput ? qrRequiredInput.checked : (point.qrRequired !== undefined ? point.qrRequired : true);
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
     }
@@ -73,6 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group">
                     <label for="lon-${index}">経度:</label>
                     <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
+                </div>
+                <div class="admin-form-group checkbox-group">
+                    <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
+                    <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
                 </div>
                 <div class="admin-form-group map-toggle-group">
                     <a href="#" class="map-toggle-link" data-index="${index}">地図から座標を取得 ▼</a>
@@ -112,12 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
-                <div class="admin-media-container">
+                <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                     <div class="media-item">
                         <p>画像プレビュー（スタンプ達成時に表示されます）</p>
                         <img id="image-preview-${index}" src="${point.stampedImageSrc || 'stamp_jpg/get.png'}" alt="画像プレビュー" class="stamp-icon">
                     </div>
-                    <div class="media-item">
+                    <div class="media-item" style="${point.qrRequired === false ? 'display: none;' : ''}">
                         <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
                         <div class="point-qrcode-wrapper">
                             <div class="qr-code-container" id="qrcode-${index}">
@@ -125,6 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="download-btn" data-point-index="${index}" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
                         </div>
                     </div>
+                    ${point.qrRequired === false ? `
+                        <div class="media-itemDirect">
+                            <p style="color: #e67e22; font-weight: bold;">※QRコード不要設定：エリア内に入ると直接スタンプ可能になります。</p>
+                        </div>
+                    ` : ''}
                 </div>
             `;
             container.appendChild(pointElement);
@@ -231,7 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
             longitude: 139.767125,
             stampedImageSrc: '',
             hint: '',
-            hintImageSrc: '' // ヒント画像用のプロパティを追加
+            hintImageSrc: '', // ヒント画像用のプロパティを追加
+            qrRequired: true
         });
         renderUI();
     });
@@ -696,7 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 longitude: 139.767125,
                 stampedImageSrc: '',
                 hint: '例：東京駅',
-                hintImageSrc: '' // ヒント画像用のプロパティを追加
+                hintImageSrc: '', // ヒント画像用のプロパティを追加
+                qrRequired: true
             }
         ];
 

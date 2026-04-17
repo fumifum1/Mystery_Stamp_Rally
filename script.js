@@ -78,7 +78,7 @@ function createStampCards() {
                 ` : ''}
             </div>
             <p class="distance-info" id="distance-${point.id}">距離: ---</p>
-            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>QRコードをスキャン</button>
+            <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>${point.qrRequired !== false ? 'QRコードをスキャン' : 'スタンプをゲット！'}</button>
         `;
         dom.stampCardsContainer.appendChild(card);
     });
@@ -435,7 +435,17 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.stampCardsContainer.addEventListener('click', (event) => {
         const stampButton = event.target.closest('.stamp-btn');
         if (stampButton && !stampButton.disabled) {
-            startQrScanner(stampButton.dataset.id);
+            const pointId = stampButton.dataset.id;
+            const point = state.stampPoints.find(p => p.id === pointId);
+            
+            if (point && point.qrRequired === false) {
+                // QR不要設定の場合は直接スタンプ
+                const imageData = point.stampedImageSrc === 'default_stamped' ? 'stamp_jpg/get.png' : point.stampedImageSrc;
+                handleStamp(pointId, imageData);
+            } else {
+                // QR必須（または不明）の場合はスキャナー起動
+                startQrScanner(pointId);
+            }
         }
     });
 
