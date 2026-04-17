@@ -950,7 +950,8 @@ textarea#completion-message {
     font-family: inherit;
     font-size: 0.95rem;
     cursor: pointer;
-    width: calc(100% - 90px); /* ラベル幅に合わせて調整 */
+    width: 100%; /* 垂直レイアウト時は100% */
+    box-sizing: border-box;
 }
 
 .coord-section {
@@ -996,12 +997,29 @@ textarea#completion-message {
 }
 
 .get-location-btn {
-    width: 100% !important;
-    padding: 15px !important;
-    font-size: 1rem !important;
+    width: auto !important;
+    padding: 8px 20px !important;
+    font-size: 0.9rem !important;
     background-color: #27ae60 !important;
+    display: inline-block !important;
 }
 
 .get-location-btn:hover {
     background-color: #2ecc71 !important;
+}
+
+/* 拡大地図モーダル用 */
+.large-modal {
+    width: 800px !important;
+    max-width: 95vw !important;
+}
+
+#modal-map-container {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border: 1px solid #34495e;
+}
+
+.btn-sm-text {
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
 }

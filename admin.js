@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let mapInstances = {}; // 各スタンプカードの地図インスタンスを保持
+    let modalMapInstance = null; // 拡大地図モーダル用の地図インスタンス
+    let editingPointIndexForModal = null; // 現在モーダルで編集中のポイントインデックス
     const container = document.getElementById('admin-stamp-points-container');
     const saveButton = document.getElementById('save-button');
     const addButton = document.getElementById('add-point-button');
@@ -16,13 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const showWelcomeModalBtn = document.getElementById('show-welcome-modal-btn');
     const welcomeModalCloseBtn = document.getElementById('welcome-modal-close-btn');
 
- 
     // 画像設定の定数
     const MAX_IMAGE_WIDTH = 400; // 画像の最大幅
     const MAX_IMAGE_HEIGHT = 400; // 画像の最大高さ
     const NORMAL_IMAGE_QUALITY = 0.8; // 通常のリサイズ時の画質
     const HIGH_COMPRESSION_QUALITY = 0.6; // 高圧縮時の画質
     const LARGE_FILE_THRESHOLD_MB = 1; // 高圧縮を適用するファイルサイズの閾値(MB)
+    const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
+    const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
+
+    let currentStampPoints = [];サイズの閾値(MB)
     const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
     const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
 
@@ -49,8 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
             point.hint = hintInput ? hintInput.value : point.hint;
             const qrRequiredInput = document.getElementById(`qr-required-${index}`);
             point.qrRequired = qrRequiredInput ? qrRequiredInput.checked : (point.qrRequired !== undefined ? point.qrRequired : true);
-            const labelInput = document.getElementById(`btn-label-${index}`);
-            point.acquisitionButtonLabel = labelInput ? labelInput.value : (point.acquisitionButtonLabel || 'スタンプをゲット！');
+            
+            // 重要：QRスキャン不要な場合は文言を「スタンプゲット！」に固定
+            if (point.qrRequired === false) {
+                point.acquisitionButtonLabel = 'スタンプゲット！';
+            } else {
+                point.acquisitionButtonLabel = 'スタンプをゲット！'; // または既存の値を維持（今回はシンプルにスキャン必須ならデフォルト）
+            }
             
             // 座標設定方法の同期
             const methodSelect = pointElements[index].querySelector('.method-select');
@@ -72,11 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="delete-btn" data-index="${index}" title="このポイントを削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
                 </div>
                 <div class="admin-form-group vertical-group">
-                    <label for="name-${index}">ポイントタイトル:</label>
+                    <label for="name-${index}">ポイントタイトル</label>
                     <input type="text" id="name-${index}" value="${point.name || ''}" placeholder="例：東京駅">
                 </div>
-                <div class="admin-form-group coord-selector-wrapper">
-                    <label>座標の設定方法:</label>
+                <div class="admin-form-group vertical-group coord-selector-wrapper">
+                    <label>座標の設定方法</label>
                     <select class="method-select" data-index="${index}">
                         <option value="map" ${(!point.coordMethod || point.coordMethod === 'map') ? 'selected' : ''}>地図から取得</option>
                         <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>手動入力</option>
@@ -86,10 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group checkbox-group">
                     <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
                     <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
-                </div>
-                <div class="admin-form-group" style="${point.qrRequired !== false ? 'display: none;' : ''}">
-                    <label for="btn-label-${index}" style="width: 140px;">取得ボタンの文字:</label>
-                    <input type="text" id="btn-label-${index}" value="${point.acquisitionButtonLabel || 'スタンプをゲット！'}">
                 </div>
 
                 <!-- 各セクションを保持するコンテナ -->
@@ -108,18 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <!-- 地図から取得セクション -->
                     <div id="section-map-${index}" class="coord-section map-section" style="${(!point.coordMethod || point.coordMethod === 'map') ? '' : 'display: none;'}">
-                        <div class="admin-form-group map-container-group">
-                            <div id="map-wrapper-${index}" class="map-wrapper">
-                                <div id="map-${index}" class="map-container"></div>
-                            </div>
+                        <div class="admin-form-group">
+                            <button type="button" class="btn btn-secondary open-map-modal-btn" data-index="${index}">地図を拡大して設定</button>
                         </div>
-                        <p class="coord-hint">地図をクリックして座標を指定してください</p>
+                        <p class="coord-hint">※大きな地図から正確な場所を指定できます</p>
                     </div>
 
                     <!-- 現在地から取得セクション -->
                     <div id="section-current-${index}" class="coord-section current-section" style="${point.coordMethod === 'current' ? '' : 'display: none;'}">
                         <div class="admin-form-group">
-                            <button type="button" class="btn btn-secondary get-location-btn" data-index="${index}">現在地の座標を取得して入力</button>
+                            <button type="button" class="btn btn-secondary get-location-btn btn-sm-text" data-index="${index}">現在地を取得</button>
                         </div>
                     </div>
                 </div>
@@ -182,73 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             container.appendChild(pointElement);
  
-            // setTimeoutを使い、DOMの描画が完了した後にQRコードを生成する
-            // 地図の初期化
-            const mapElement = document.getElementById(`map-${index}`);
-            const latInput = document.getElementById(`lat-${index}`);
-            const lonInput = document.getElementById(`lon-${index}`);
-
-            if (mapElement && latInput && lonInput) {
-                const currentLat = parseFloat(latInput.value);
-                const currentLon = parseFloat(lonInput.value);
-
-                // ベースレイヤーを定義
-                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                });
-
-                const gsiOrtLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg', {
-                    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>'
-                });
-
-                // Leaflet地図を初期化し、デフォルトで白地図を表示
-                const map = L.map(mapElement, {
-                    layers: [osmLayer] // デフォルトで表示するレイヤー
-                }).setView([currentLat, currentLon], 15);
-
-                // レイヤーコントロールに追加するベースマップの定義
-                const baseLayers = {
-                    "白地図": osmLayer,
-                    "航空写真": gsiOrtLayer
-                };
-
-                // レイヤー切り替えコントロールを地図に追加
-                // collapsed: false にすることで、スマホでのタッチ操作の不具合を回避し、常に選択肢を表示する
-                L.control.layers(baseLayers, null, {
-                    collapsed: false
-                }).addTo(map);
-
-                // 地図インスタンスを保存
-                mapInstances[index] = map;
-
-                // マーカーを初期位置に配置
-                let marker = L.marker([currentLat, currentLon]).addTo(map);
-
-                // 地図クリックイベント
-                map.on('click', function(e) {
-                    const clickedLat = e.latlng.lat;
-                    const clickedLon = e.latlng.lng;
-                    const latVal = clickedLat.toFixed(6);
-                    const lonVal = clickedLon.toFixed(6);
-
-                    // フォームと非表示の値を更新
-                    if (latInput) latInput.value = latVal;
-                    if (lonInput) lonInput.value = lonVal;
-                    
-                    const hiddenLat = document.getElementById(`hidden-lat-${index}`);
-                    const hiddenLon = document.getElementById(`hidden-lon-${index}`);
-                    if (hiddenLat) hiddenLat.value = latVal;
-                    if (hiddenLon) hiddenLon.value = lonVal;
-
-                    const displayLat = document.getElementById(`display-lat-${index}`);
-                    const displayLon = document.getElementById(`display-lon-${index}`);
-                    if (displayLat) displayLat.textContent = latVal;
-                    if (displayLon) displayLon.textContent = lonVal;
-
-                    // マーカーの位置を更新
-                    marker.setLatLng(e.latlng);
-                });
-            }
+            // 地図の初期化（インライン地図は削除または最小化されたため、ここでの処理は不要になりました）
+            // QRコード生成などの他のDOM後処理があればここに記述
+        });
             setTimeout(() => {
                 const qrCodeElement = document.getElementById(`qrcode-${index}`);
                 if (qrCodeElement) {
@@ -451,8 +392,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // スタンプカードコンテナ内のイベントをまとめて処理（イベント委任）
-    container.addEventListener('click', async (event) => {
+        // 拡大地図モーダルを開くボタン
+        const openMapModalBtn = event.target.closest('.open-map-modal-btn');
+        if (openMapModalBtn) {
+            const index = parseInt(openMapModalBtn.dataset.index, 10);
+            openMapModal(index);
+            return;
+        }
+
         // 現在地の座標を取得ボタンの処理
         const getLocationBtn = event.target.closest('.get-location-btn');
         if (getLocationBtn) {
@@ -503,6 +450,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = qrCanvas.toDataURL('image/png');
                 link.click();
             }
+            return;
+        }
+
+        // 拡大地図モーダルを開くボタン
+        const openMapModalBtn = event.target.closest('.open-map-modal-btn');
+        if (openMapModalBtn) {
+            const index = parseInt(openMapModalBtn.dataset.index, 10);
+            openMapModal(index);
             return;
         }
 
@@ -808,6 +763,77 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas.toDataURL();
     }
  
+    // 地図モーダルの初期化と制御
+    const mapModal = document.getElementById('map-modal');
+    const mapModalConfirmBtn = document.getElementById('map-modal-confirm-btn');
+    const mapModalCancelBtn = document.getElementById('map-modal-cancel-btn');
+    let tempLat = 0;
+    let tempLon = 0;
+    let modalMarker = null;
+
+    function openMapModal(index) {
+        editingPointIndexForModal = index;
+        const point = currentStampPoints[index];
+        tempLat = point.latitude;
+        tempLon = point.longitude;
+
+        mapModal.classList.add('show');
+
+        // 地図の初期化（初回のみ）
+        setTimeout(() => {
+            if (!modalMapInstance) {
+                modalMapInstance = L.map('modal-map-container').setView([tempLat, tempLon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(modalMapInstance);
+
+                modalMapInstance.on('click', (e) => {
+                    const lat = e.latlng.lat;
+                    const lon = e.latlng.lng;
+                    updateModalMarker(lat, lon);
+                });
+            } else {
+                modalMapInstance.setView([tempLat, tempLon], 15);
+                modalMapInstance.invalidateSize();
+            }
+
+            updateModalMarker(tempLat, tempLon);
+        }, 300);
+    }
+
+    function updateModalMarker(lat, lon) {
+        tempLat = lat;
+        tempLon = lon;
+        if (modalMarker) {
+            modalMarker.setLatLng([lat, lon]);
+        } else {
+            modalMarker = L.marker([lat, lon], { draggable: true }).addTo(modalMapInstance);
+            modalMarker.on('dragend', function(e) {
+                const pos = e.target.getLatLng();
+                tempLat = pos.lat;
+                tempLon = pos.lng;
+            });
+        }
+    }
+
+    mapModalConfirmBtn.addEventListener('click', () => {
+        if (editingPointIndexForModal !== null) {
+            const latVal = tempLat.toFixed(6);
+            const lonVal = tempLon.toFixed(6);
+            
+            // データを更新
+            currentStampPoints[editingPointIndexForModal].latitude = parseFloat(latVal);
+            currentStampPoints[editingPointIndexForModal].longitude = parseFloat(lonVal);
+            
+            mapModal.classList.remove('show');
+            renderUI();
+        }
+    });
+
+    mapModalCancelBtn.addEventListener('click', () => {
+        mapModal.classList.remove('show');
+    });
+
     // アプリケーションの初期化
     function initialize() {
         document.getElementById('rally-title').value = 'Mystery Stamp Rally'; // デフォルトタイトルを設定

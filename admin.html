@@ -91,6 +91,19 @@
         </div>
     </div>
 
+    <!-- 座標選択用地図モーダル -->
+    <div id="map-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <h2 class="modal-title">地図から座標を選択</h2>
+            <div id="modal-map-container" style="width: 100%; height: 60vh; border-radius: 8px; margin-bottom: 15px;"></div>
+            <p class="modal-description">地図をクリックして場所を指定し、「決定」を押してください。</p>
+            <div class="modal-footer-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="map-modal-cancel-btn" class="btn btn-secondary">キャンセル</button>
+                <button id="map-modal-confirm-btn" class="btn btn-primary">この位置に決定</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet.js (地図ライブラリ) のJavaScript -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- QRコード生成ライブラリ -->
