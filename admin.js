@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    saveButton.addEventListener('click', () => {
+    saveButton.addEventListener('click', async () => {
         try {
             syncDataFromUI();
  
@@ -561,42 +561,56 @@ document.addEventListener('DOMContentLoaded', () => {
             saveButton.disabled = true;
             saveButton.textContent = 'URLを生成中...';
 
-            // 非同期処理をsetTimeoutでラップして、UIの更新を確実にする
-            setTimeout(() => {
-                try {
-                    const jsonString = JSON.stringify(dataToUpload);
-                    // 1. データを圧縮してUint8Array（バイナリデータ）として受け取る
-                    const compressed = pako.deflate(jsonString);
-                    // 2. バイナリデータを安全にBase64文字列にエンコードする
-                    const base64 = uint8ArrayToBase64(compressed);
-                    // URL-safe Base64に変換 (+→-, /→_, 末尾=を除去)
-                    const encoded = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-                    const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
-                    const fullUrl = `${baseUrl}?data=${encoded}`;
+            const jsonString = JSON.stringify(dataToUpload);
+            const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
+            let fullUrl;
 
-                    modalUrlOutput.value = fullUrl;
-                    modalQrcodeElement.innerHTML = '';
-                    const qrCode = new QRCodeStyling({
-                        width: 200, height: 200, data: fullUrl, margin: 0,
-                        qrOptions: { errorCorrectionLevel: 'H' },
-                        dotsOptions: { type: 'dots', color: '#3498db', gradient: { type: 'linear', rotation: 90, colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }] } },
-                        cornersSquareOptions: { type: 'dot', color: '#e67e22' },
-                        cornersDotOptions: { type: 'dot', color: '#e67e22' },
-                        backgroundOptions: { color: '#ffffff' },
-                        imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
-                        image: createTextDataUrl('Rally')
-                    });
-                    qrCode.append(modalQrcodeElement);
-                    shareModal.classList.add('show');
-                } catch (e) {
-                    // URLが長すぎると、btoaでエラーが発生することがある
-                    console.error("URL生成中のエンコードエラー:", e);
-                    alert("URLの生成に失敗しました。データが大きすぎる可能性があります。\n\nヒントの文字数や画像のサイズ・枚数を減らして再度お試しください。");
-                } finally {
-                    saveButton.disabled = false;
-                    saveButton.textContent = '共有URLを生成';
+            try {
+                // jsonblob.comにデータをアップロードして短いURLを生成
+                const response = await fetch('https://jsonblob.com/api/jsonBlob', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: jsonString
+                });
+
+                if (response.status === 201) {
+                    const location = response.headers.get('Location');
+                    if (location) {
+                        const binId = location.split('/').pop();
+                        fullUrl = `${baseUrl}?bin=${binId}`;
+                    } else {
+                        throw new Error('Locationヘッダーが取得できませんでした。');
+                    }
+                } else {
+                    throw new Error(`アップロード失敗 (Status: ${response.status})`);
                 }
-            }, 10); // 10msの遅延でUI更新を待つ
+            } catch (uploadError) {
+                // jsonblob.comが利用できない場合は、圧縮URLにフォールバック
+                console.warn('jsonblob.comへのアップロードに失敗しました。圧縮URLで生成します。', uploadError);
+                const compressed = pako.deflate(jsonString);
+                const base64 = uint8ArrayToBase64(compressed);
+                const encoded = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                fullUrl = `${baseUrl}?data=${encoded}`;
+            }
+
+            modalUrlOutput.value = fullUrl;
+            modalQrcodeElement.innerHTML = '';
+            const qrCode = new QRCodeStyling({
+                width: 200, height: 200, data: fullUrl, margin: 0,
+                qrOptions: { errorCorrectionLevel: 'H' },
+                dotsOptions: { type: 'dots', color: '#3498db', gradient: { type: 'linear', rotation: 90, colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }] } },
+                cornersSquareOptions: { type: 'dot', color: '#e67e22' },
+                cornersDotOptions: { type: 'dot', color: '#e67e22' },
+                backgroundOptions: { color: '#ffffff' },
+                imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
+                image: createTextDataUrl('Rally')
+            });
+            qrCode.append(modalQrcodeElement);
+            shareModal.classList.add('show');
+
         } catch (error) {
             console.error('URL生成エラー:', error);
             alert(`URLの生成に失敗しました: ${error.message}\n\n時間をおいて再度お試しください。`);
