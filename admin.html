@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,12 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <!-- Leaflet.js (地図ライブラリ) のCSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -29,7 +32,8 @@
                 <input type="text" id="rally-title" placeholder="スタンプラリーのタイトルを入力します。">
             </div>
             <div class="admin-form-group">
-                <label for="completion-message" style="width: 100%; display: block; margin-bottom: 5px;">コンプリート時メッセージ:</label>
+                <label for="completion-message"
+                    style="width: 100%; display: block; margin-bottom: 5px;">コンプリート時メッセージ:</label>
                 <textarea id="completion-message" placeholder="すべてのスタンプを集めた参加者へのメッセージを入力します。"></textarea>
             </div>
             <hr style="border-color: #7f8c8d; margin: 20px 0;">
@@ -57,7 +61,8 @@
                     <p><strong>【重要】</strong></p>
                     <ul>
                         <li><strong>ネタバレに注意:</strong> コンプリートメッセージに最後の謎の答えなど、事前に知られては困る重大な情報は記載しないでください。</li>
-                        <li><strong>景品を伴う利用:</strong> 不特定多数が参加し、高価な景品を出すような本格的なイベントでの利用は、システムの単純さをご理解いただいた上でご判断ください。</li>
+                        <li><strong>景品を伴う利用:</strong> 不特定多数が参加し、高価な景品を出すような本格的なイベントでの利用は、システムの単純さをご理解いただいた上でご判断ください。
+                        </li>
                     </ul>
                 </div>
                 <p>個人的なグループやサークル活動など、参加者が限定的な範囲でのご利用を推奨しております。</p>
@@ -78,14 +83,28 @@
             <p class="modal-description">このURLまたはQRコードを参加者に共有してください。</p>
             <div class="url-copy-container">
                 <textarea id="modal-url-output" readonly></textarea>
-                <button id="copy-url-btn" class="copy-btn" title="URLをクリップボードにコピー"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg></button>
+                <button id="copy-url-btn" class="copy-btn" title="URLをクリップボードにコピー"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-clipboard" viewBox="0 0 16 16">
+                        <path
+                            d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+                        <path
+                            d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+                    </svg></button>
             </div>
             <div style="margin-top: 20px; text-align: center;">
                 <div id="modal-qrcode-wrapper">
                     <div id="modal-qrcode">
                         <!-- 共有QRコードはここに生成されます -->
                     </div>
-                    <button id="download-qr-btn" class="download-btn" title="QRコードをダウンロード"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></button>
+                    <button id="download-qr-btn" class="download-btn" title="QRコードをダウンロード"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-download" viewBox="0 0 16 16">
+                            <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                            <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                        </svg></button>
                 </div>
             </div>
         </div>
@@ -95,7 +114,8 @@
     <div id="map-modal" class="modal-overlay">
         <div class="modal-content large-modal">
             <h2 class="modal-title">地図から座標を選択</h2>
-            <div id="modal-map-container" style="width: 100%; height: 60vh; border-radius: 8px; margin-bottom: 15px;"></div>
+            <div id="modal-map-container" style="width: 100%; height: 60vh; border-radius: 8px; margin-bottom: 15px;">
+            </div>
             <p class="modal-description">地図をクリックして場所を指定し、「決定」を押してください。</p>
             <div class="modal-footer-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="map-modal-cancel-btn" class="btn btn-secondary">キャンセル</button>
@@ -105,11 +125,13 @@
     </div>
 
     <!-- Leaflet.js (地図ライブラリ) のJavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- QRコード生成ライブラリ -->
     <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="error-handler.js"></script>
     <script src="admin.js"></script>
 </body>
+
 </html>

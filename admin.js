@@ -23,13 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const welcomeModalCloseBtn = document.getElementById('welcome-modal-close-btn');
 
     // 画像設定の定数
-    const MAX_IMAGE_WIDTH = 250; // 画像の最大幅 (URLサイズ抑制のため 400->250)
-    const MAX_IMAGE_HEIGHT = 250; // 画像の最大高さ
-    const STAMP_IMAGE_QUALITY = 0.7; // 達成画像の画質
-    const HINT_IMAGE_QUALITY = 0.4;  // ヒント画像の画質 (ヒントは低画質でOK)
+    const MAX_IMAGE_WIDTH = 200; // 画像の最大幅 (URLサイズ抑制のため 250->200)
+    const MAX_IMAGE_HEIGHT = 200; // 画像の最大高さ
+    const STAMP_IMAGE_QUALITY = 0.4; // 達成画像の画質 (0.7->0.4)
+    const HINT_IMAGE_QUALITY = 0.3;  // ヒント画像の画質 (0.4->0.3)
     const LARGE_FILE_THRESHOLD_MB = 1; // 高圧縮を適用するファイルサイズの閾値(MB)
     const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
-    const MAX_DATA_URL_SIZE_BYTES = 1.5 * 1024 * 1024; // リサイズ後の最大データサイズ(1.5MB、JSONBlob制限考慮)
+    const MAX_TOTAL_JSON_SIZE = 256 * 1024; // JSON全体の最大サイズ目安 (256KB)
+    const MAX_DATA_URL_SIZE_BYTES = 100 * 1024; // 個別画像の目安サイズ (100KB)
 
     let currentStampPoints = [];
     // mapInstances は冒頭で宣言済みのため、ここでは追加しない
@@ -260,6 +261,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 0);
         });
+        updateDataSizeIndicator();
+    }
+
+    // データ量の目安を計算してUIに表示する
+    function updateDataSizeIndicator() {
+        const display = document.getElementById('data-size-display');
+        if (!display) return;
+
+        try {
+            // syncDataFromUI() は呼ばずに、現在の currentStampPoints から概算
+            const rallyTitle = document.getElementById('rally-title')?.value || '';
+            const completionMessage = document.getElementById('completion-message')?.value || '';
+            
+            const tempData = {
+                title: rallyTitle,
+                completionMessage: completionMessage,
+                points: currentStampPoints.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                    stampedImageSrc: p.useCustomStampedImage ? (p.stampedImageSrc || 'default_stamped') : 'default_stamped',
+                    hint: p.useHint ? p.hint : '',
+                    hintImageSrc: p.useHintImage ? p.hintImageSrc : ''
+                }))
+            };
+
+            const size = JSON.stringify(tempData).length;
+            const sizeKB = (size / 1024).toFixed(1);
+            display.textContent = `データ量目安: ${sizeKB}KB`;
+
+            if (size > MAX_TOTAL_JSON_SIZE) {
+                display.style.color = '#e74c3c'; // 赤
+                display.style.fontWeight = 'bold';
+                display.textContent += ' (容量大：エラーの可能性あり)';
+            } else if (size > MAX_TOTAL_JSON_SIZE * 0.7) {
+                display.style.color = '#e67e22'; // オレンジ
+                display.style.fontWeight = 'normal';
+            } else {
+                display.style.color = '#7f8c8d'; // グレー
+                display.style.fontWeight = 'normal';
+            }
+        } catch (e) {
+            console.warn('Size calculation failed', e);
+        }
     }
  
     // イベントリスナーの設定
@@ -297,6 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
     showWelcomeModalBtn.addEventListener('click', () => {
         welcomeModal.classList.add('show');
     });
+
+    // タイトルやメッセージ入力時にもサイズ表示を更新
+    document.getElementById('rally-title').addEventListener('input', updateDataSizeIndicator);
+    document.getElementById('completion-message').addEventListener('input', updateDataSizeIndicator);
 
     // --- 自作チュートリアル機能 ---
     function runTutorial() {
@@ -628,6 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resizedImageSrc = await processAndResizeImage(file, STAMP_IMAGE_QUALITY);
                     point.stampedImageSrc = resizedImageSrc;
                     renderUI(); // 画像処理が終わったらUIを再描画して反映
+                    updateDataSizeIndicator(); // サイズ表示を更新
                 } catch (error) {
                     alert(error.message);
                     event.target.value = ''; // ファイル選択をリセット
@@ -646,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resizedImageSrc = await processAndResizeImage(file, HINT_IMAGE_QUALITY);
                     point.hintImageSrc = resizedImageSrc;
                     renderUI(); // 画像処理が終わったらUIを再描画して反映
+                    updateDataSizeIndicator(); // サイズ表示を更新
                 } catch (error) {
                     alert(error.message);
                     event.target.value = ''; // ファイル選択をリセット
@@ -748,6 +800,17 @@ document.addEventListener('DOMContentLoaded', () => {
             saveButton.textContent = 'URLを生成中...';
 
             const jsonString = JSON.stringify(dataToUpload);
+            const totalSize = jsonString.length;
+
+            // データサイズが非常に大きい場合の警告
+            if (totalSize > MAX_TOTAL_JSON_SIZE) {
+                if (!confirm(`警告: データ量が非常に多くなっています（${(totalSize / 1024).toFixed(1)}KB）。\n共有URLがエラーになったり、QRコードが正常に生成されない可能性があります。\n画像の数を減らすか、より小さな画像を使用することをお勧めします。\nこのまま続行しますか？`)) {
+                    saveButton.disabled = false;
+                    saveButton.textContent = '共有URLを生成';
+                    return;
+                }
+            }
+
             const baseUrl = window.location.href.replace('admin.html', 'mspr.html');
             let fullUrl;
 
@@ -765,18 +828,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.status === 201) {
                     const location = response.headers.get('Location');
                     if (location) {
-                        const binId = location.split('/').pop();
+                        const binId = location.pop ? location.pop() : location.split('/').pop();
                         fullUrl = `${baseUrl}?bin=${binId}`;
                     } else {
                         throw new Error('Locationヘッダーが取得できませんでした。');
                     }
                 } else if (response.status === 413) {
-                    throw new Error('画像データが大きすぎて保存できません。画像の数を減らすか、より小さな画像を使用してください。');
+                    throw new Error('画像データが大きすぎて保存できません。画像の数を減らすか、さらに小さな画像を使用してください。');
                 } else {
                     throw new Error(`アップロード失敗 (Status: ${response.status})`);
                 }
             } catch (uploadError) {
-                // jsonblob.comが利用できない場合、またはデータ制限を超えた場合は、圧縮URLにフォールバック（ただし警告を出す）
+                // jsonblob.comが利用できない場合、またはデータ制限を超えた場合は、圧縮URLにフォールバック
                 console.warn('jsonblob.comへのアップロードに失敗しました。圧縮URLで生成します。', uploadError);
                 
                 const compressed = pako.deflate(jsonString);
@@ -786,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // データ量が多すぎる場合はユーザーに警告
                 if (fullUrl.length > 5000) {
-                    alert('注意：画像データが多いため、生成されたQRコードが非常に複雑になっています。古いスマホでは読み取れない可能性があるため、画像の数を減らすことをお勧めします。');
+                    alert('【重要】データの圧縮後もURLが非常に長くなっています。一部の環境（LINEやTwitterなど）ではURLが途切れてエラーになる可能性があります。画像の数や種類を減らすことを強くお勧めします。');
                 }
             }
 
