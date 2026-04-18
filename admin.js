@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const latInput = document.getElementById(`lat-${index}`);
             const lonInput = document.getElementById(`lon-${index}`);
             const hintInput = document.getElementById(`hint-${index}`);
- 
+
             point.name = nameInput ? nameInput.value : point.name;
             point.latitude = latInput ? parseFloat(latInput.value) : point.latitude;
             point.longitude = lonInput ? parseFloat(lonInput.value) : point.longitude;
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 座標設定方法の同期
             const methodSelect = pointElements[index].querySelector('.method-select');
-            point.coordMethod = methodSelect ? methodSelect.value : (point.coordMethod || 'map');
+            point.coordMethod = methodSelect ? methodSelect.value : (point.coordMethod || 'current');
 
             // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
         });
@@ -88,9 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group vertical-group coord-selector-wrapper">
                     <label>座標の設定方法</label>
                     <select class="method-select" data-index="${index}">
-                        <option value="map" ${(!point.coordMethod || point.coordMethod === 'map') ? 'selected' : ''}>地図から取得</option>
-                        <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>手動入力</option>
-                        <option value="current" ${point.coordMethod === 'current' ? 'selected' : ''}>現在地から取得</option>
+                        <option value="current" ${(!point.coordMethod || point.coordMethod === 'current') ? 'selected' : ''}>① 現在地</option>
+                        <option value="map" ${point.coordMethod === 'map' ? 'selected' : ''}>② 地図から取得</option>
+                        <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>③ 手動入力</option>
                     </select>
                 </div>
                 <div class="admin-form-group checkbox-group">
@@ -100,6 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- 各セクションを保持するコンテナ -->
                 <div class="coord-sections-container">
+                    <!-- 現在地から取得セクション -->
+                    <div id="section-current-${index}" class="coord-section current-section" style="${(!point.coordMethod || point.coordMethod === 'current') ? '' : 'display: none;'}">
+                        <div class="admin-form-group">
+                            <button type="button" class="btn btn-secondary get-location-btn btn-sm-text" data-index="${index}">現在地を取得</button>
+                        </div>
+                    </div>
+
+                    <!-- 地図から取得セクション -->
+                    <div id="section-map-${index}" class="coord-section map-section" style="${point.coordMethod === 'map' ? '' : 'display: none;'}">
+                        <div class="admin-form-group">
+                            <button type="button" class="btn btn-secondary open-map-modal-btn" data-index="${index}">地図を拡大して設定</button>
+                        </div>
+                        <p class="coord-hint">※大きな地図から正確な場所を指定できます</p>
+                    </div>
+
                     <!-- 手動入力セクション -->
                     <div id="section-manual-${index}" class="coord-section manual-section" style="${point.coordMethod === 'manual' ? '' : 'display: none;'}">
                         <div class="admin-form-group">
@@ -109,21 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="admin-form-group">
                             <label for="lon-${index}">経度:</label>
                             <input type="number" step="any" id="lon-${index}" value="${point.longitude || 0}">
-                        </div>
-                    </div>
-
-                    <!-- 地図から取得セクション -->
-                    <div id="section-map-${index}" class="coord-section map-section" style="${(!point.coordMethod || point.coordMethod === 'map') ? '' : 'display: none;'}">
-                        <div class="admin-form-group">
-                            <button type="button" class="btn btn-secondary open-map-modal-btn" data-index="${index}">地図を拡大して設定</button>
-                        </div>
-                        <p class="coord-hint">※大きな地図から正確な場所を指定できます</p>
-                    </div>
-
-                    <!-- 現在地から取得セクション -->
-                    <div id="section-current-${index}" class="coord-section current-section" style="${point.coordMethod === 'current' ? '' : 'display: none;'}">
-                        <div class="admin-form-group">
-                            <button type="button" class="btn btn-secondary get-location-btn btn-sm-text" data-index="${index}">現在地を取得</button>
                         </div>
                     </div>
                 </div>
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hint: '',
             hintImageSrc: '', // ヒント画像用のプロパティを追加
             qrRequired: true,
-            coordMethod: 'map'
+            coordMethod: 'current'
         });
         renderUI();
     });
@@ -839,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hint: '例：東京駅',
                 hintImageSrc: '', // ヒント画像用のプロパティを追加
                 qrRequired: true,
-                coordMethod: 'map'
+                coordMethod: 'current'
             }
         ];
 
