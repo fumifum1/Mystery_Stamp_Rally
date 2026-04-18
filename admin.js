@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- ヒント入力コンテナ -->
                 <div id="hint-section-container-${index}" class="hint-section-container" style="${point.useHint ? '' : 'display: none;'}">
-                    <div class="admin-form-group">
+                    <div class="admin-form-group vertical-group">
                         <textarea id="hint-${index}" placeholder="ヒントを入力してください">${point.hint || ''}</textarea>
                     </div>
                 </div>
