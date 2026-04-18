@@ -77,7 +77,7 @@ function createStampCards() {
                 ` : ''}
                 ${point.hintImageSrc ? `
                     <div class="hint-image-wrapper">
-                        <img src="${point.hintImageSrc}" alt="ヒント画像" class="hint-image">
+                        <img src="${point.hintImageSrc}" alt="ヒント画像" class="hint-image" onerror="this.style.display='none'; console.error('Hint image failed to load:', this.src);">
                     </div>
                 ` : ''}
             </div>
@@ -207,6 +207,10 @@ function updateStampCardsUI() {
             card.classList.add('stamped');
             // localStorageに保存された画像データを表示
             stampIcon.src = stampedImageData;
+            stampIcon.onerror = function() {
+                console.error('Stamped image failed to load:', this.src);
+                this.src = STAMPED_IMG; // フォールバックとしてデフォルトスタンプを表示
+            };
             stampBtn.disabled = true;
             stampBtn.textContent = 'スタンプ済み';
         } else {

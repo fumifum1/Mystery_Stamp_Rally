@@ -658,8 +658,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // URL直接入力時のプレビュー更新リスナー
         if (event.target.matches('.stamped-image-url-input')) {
             const index = parseInt(event.target.dataset.index, 10);
-            const url = event.target.value;
+            let url = event.target.value;
             if (currentStampPoints[index]) {
+                const convertedUrl = convertImageDirectLink(url);
+                if (convertedUrl !== url) {
+                    event.target.value = convertedUrl;
+                    url = convertedUrl;
+                }
                 currentStampPoints[index].stampedImageSrc = url;
                 document.getElementById(`image-preview-${index}`).src = url || ADMIN_DEFAULT_STAMP_IMG;
                 updateDataSizeIndicator();
@@ -668,11 +673,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (event.target.matches('.hint-image-url-input')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            let url = event.target.value;
+            const convertedUrl = convertImageDirectLink(url);
+            if (convertedUrl !== url) {
+                event.target.value = convertedUrl;
+            }
             updateDataSizeIndicator();
             return;
         }
 
     });
+
+    /**
+     * 外部サービスの共有URLを直接画像リンクに変換します。
+     * @param {string} url 変換前のURL
+     * @returns {string} 変換後のURL
+     */
+    function convertImageDirectLink(url) {
+        if (!url) return url;
+        let converted = url.trim();
+
+        // Google Drive
+        if (converted.includes('drive.google.com')) {
+            const match = converted.match(/\/file\/d\/([^\/\?]+)/);
+            if (match && match[1]) {
+                // uc?id よりも lh3.googleusercontent.com/d/ の方が読み込みエラーが少ない
+                return `https://lh3.googleusercontent.com/d/${match[1]}=w1000`;
+            }
+        }
+
+        // Dropbox
+        if (converted.includes('dropbox.com')) {
+            return converted.replace(/\?dl=[0-1]$|\?dl=0$|\?dl=1$/, '').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+            // またはシンプルに ?raw=1 をつける
+            // if (!converted.includes('?raw=1')) {
+            //     return converted.split('?')[0] + '?raw=1';
+            // }
+        }
+
+        // Gyazo
+        if (converted.includes('gyazo.com') && !converted.includes('i.gyazo.com')) {
+            const match = converted.match(/gyazo\.com\/([a-f0-9]+)/);
+            if (match && match[1]) {
+                return `https://i.gyazo.com/${match[1]}.png`;
+            }
+        }
+
+        return converted;
+    }
 
     // 画像リサイズ処理
     async function processAndResizeImage(file, targetQuality = 0.7) {
