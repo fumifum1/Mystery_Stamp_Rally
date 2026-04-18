@@ -1,32 +1,56 @@
-/* グローバルスタイル */
+/* ==========================================================================
+   1. Variables & Global Setup
+   ========================================================================== */
+
+:root {
+    --bg-color: #2c3e50;
+    --container-bg: #34495e;
+    --card-bg: #2c3e50;
+    --text-color: #ecf0f1;
+    --text-muted: #bdc3c7;
+    --accent-color: #3498db;
+    --accent-hover: #2980b9;
+    --success-color: #27ae60;
+    --success-hover: #229954;
+    --danger-color: #e74c3c;
+    --danger-hover: #c0392b;
+    --warning-color: #f1c40f;
+    --border-color: #7f8c8d;
+    --input-bg: #ecf0f1;
+    --input-text: #2c3e50;
+}
+
 body {
     font-family: 'Noto Sans JP', sans-serif;
-    color: #ecf0f1; /* 明るいグレー */
+    color: var(--text-color);
     margin: 0;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-
-    /* --- 和柄「麻の葉」の背景（縮小版） --- */
-    background-color: #2c3e50; /* ベースの背景色 */
+    /* 和柄「麻の葉」の背景 */
+    background-color: var(--bg-color);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38.97' height='45'%3E%3Cpath d='M19.485 0 L0 11.25 L0 33.75 L19.485 45 L38.97 33.75 L38.97 11.25 Z M19.485 22.5 L0 11.25 M19.485 22.5 L0 33.75 M19.485 22.5 L19.485 45 M19.485 22.5 L38.97 33.75 M19.485 22.5 L38.97 11.25 M19.485 22.5 L19.485 0' stroke='%23ffffff' stroke-width='1' fill='none' opacity='0.07'/%3E%3C/svg%3E");
-    background-size: 30px 30px; /* SVGのwidthとheightと同じサイズを指定 */
+    background-size: 30px 30px;
 }
 
 .container {
     width: 100%;
     max-width: 600px;
-    background-color: #34495e; /* 少し明るい青 */
+    background-color: var(--container-bg);
     border-radius: 15px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
     padding: 30px;
-    margin-bottom: auto; /* フッターを押し下げるためのマージン */
+    margin-bottom: auto;
     box-sizing: border-box;
 }
 
-/* ヘッダー */
+/* ==========================================================================
+   2. Layout & Common Components
+   ========================================================================== */
+
+/* Header */
 .header {
     text-align: center;
     margin-bottom: 30px;
@@ -39,109 +63,56 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     margin: 0;
 }
-.header-buttons {
-    display: flex;
-    flex-direction: column; /* 縦並びに変更 */
-    align-items: center;   /* 中央寄せ */
-    gap: 10px;             /* ボタン間の垂直方向の隙間 */
-    margin-top: 15px;
-}
-
 
 .status-message {
     font-size: 1rem;
     margin: 5px 0;
-    color: #bdc3c7;
+    color: var(--text-muted);
 }
 
-/* スタンプカード */
-.stamp-cards {
+.header-buttons {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-}
-
-.stamp-card {
-    background-color: #2c3e50;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease-in-out;
-    position: relative; /* 削除ボタンの基準位置にする */
-}
-
-.stamp-card:hover {
-    transform: translateY(-5px);
-}
-
-.stamp-card-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    gap: 10px; /* タイトルとボタンの間に隙間を作る */
+    gap: 10px;
+    margin-top: 15px;
 }
 
-/* 使用者ページのスタンプカード内コンテンツ */
-.stamp-card-content {
+/* Footer */
+footer {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
     text-align: center;
 }
-.stamp-image-container {
-    text-align: center;
-    margin: 15px 0;
+
+footer a {
+    color: var(--accent-color);
+    text-decoration: none;
 }
 
-.card-title {
-    font-size: 1.5rem;
-    color: #3498db; /* アクセントカラー */
-    margin: 0 0 10px 0;
+footer a:hover {
+    text-decoration: underline;
 }
 
-.stamp-icon {
-    width: 150px;  /* QRコードのサイズに合わせて大きくする */
-    height: 150px; /* QRコードのサイズに合わせて大きくする */
-    border-radius: 50%; /* 画像を丸くする */
-    object-fit: cover; /* 画像の比率を維持し、はみ出た部分をトリミング */
-    background-color: #34495e; /* 画像読み込み前の背景色 */
-    border: 3px solid #7f8c8d; /* 未取得時の枠線 */
-    transition: border-color 0.3s ease-in-out;
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-.hint-container {
-    display: flex; /* 子要素を縦に並べる */
-    flex-direction: column;
-    gap: 10px; /* テキストと画像の間の隙間 */
-    margin: 15px 0;
+::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.hint-image-wrapper {
-    width: 100%;
-    text-align: center; /* 画像を中央に配置 */
+::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
 }
 
-.hint-image {
-    max-width: 100%; /* 親要素の幅に合わせる */
-    height: auto; /* アスペクト比を維持 */
-    object-fit: cover;
-    border-radius: 5px;
-    border: 2px solid #7f8c8d;
-}
+/* ==========================================================================
+   3. Buttons & Interactive Elements
+   ========================================================================== */
 
-.hint-text {
-    width: 100%; /* 幅を100%に */
-    box-sizing: border-box; /* paddingを含めて幅を計算 */
-    padding: 10px 15px;
-    background-color: #34495e;
-    border-left: 4px solid #3498db;
-}
-
-.distance-info {
-    font-size: 0.9rem;
-    color: #95a5a6;
-    margin-bottom: 10px;
-}
-
-/* ボタン */
 .btn {
     width: 100%;
     padding: 12px;
@@ -150,768 +121,136 @@ body {
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
-/* スタンプカード内のボタンの上の余白を調整 */
-.stamp-card .stamp-btn {
-    margin-top: 15px;
+.btn-primary { background-color: var(--accent-color); color: #fff; }
+.btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); transform: scale(1.02); }
+.btn-primary:disabled { background-color: var(--border-color); cursor: not-allowed; }
+
+.btn-secondary { background-color: var(--success-color); color: #fff; }
+.btn-secondary:hover:not(:disabled) { background-color: var(--success-hover); }
+
+.btn-danger { background-color: var(--danger-color); color: #fff; }
+.btn-danger:hover { background-color: var(--danger-hover); }
+
+.btn-link { background: none; color: var(--accent-color); padding: 5px; }
+.btn-link:hover { text-decoration: underline; }
+
+.btn-sm-text {
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
+    width: auto !important;
 }
 
-.btn-primary {
-    background-color: #3498db;
-    color: #fff;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background-color: #2980b9;
-    transform: scale(1.02);
-}
-
-.btn-primary:disabled {
-    background-color: #7f8c8d;
-    cursor: not-allowed;
-}
-
-.btn-danger {
-    background-color: #e74c3c;
-    color: #fff;
-}
-
-.btn-danger:hover {
-    background-color: #c0392b;
-}
-
-.btn-link-danger {
-    background: none;
-    border: none;
-    color: #e74c3c;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 5px;
-}
-
-.btn-link-danger:hover {
-    color: #c0392b;
-}
-
-.btn-link {
-    background: none;
-    color: #3498db;
-}
-
+/* Special Button (Success with Animation) */
 .btn-success {
-    /* 動くグラデーションの背景 */
     background: linear-gradient(120deg, #f1c40f, #e67e22, #e74c3c, #3498db, #2ecc71, #f1c40f);
     background-size: 200% 200%;
     color: #fff;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 文字に影を追加 */
-    /* 影とアニメーションを追加 */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     animation: pulse 2s infinite, gradient-animation 8s ease infinite;
 }
 
-.btn-success:hover {
-    animation-play-state: paused; /* ホバー中はアニメーションを一時停止 */
-}
-
-/* グラデーションを動かすためのアニメーション */
-@keyframes gradient-animation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.button-container {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* ボタンの間に隙間を作る */
-    color: #fff;
-}
-
-/* QR Scanner Page */
-.qr-scanner-page {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
-}
-
-.qr-scanner-page.show {
-    transform: translateY(0);
-}
-
-.qr-scanner-header {
-    display: flex;
+.button-2 { /* User custom style */
+    display: inline-flex;
     align-items: center;
-    padding: 15px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    position: relative;
-}
-
-.qr-scanner-header .title {
-    font-size: 1.2rem;
-    margin: 0 auto;
-}
-
-.qr-scanner-header .close-btn {
-    position: absolute;
-    left: 15px;
-    font-size: 2.5rem;
-    color: #fff;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-#qr-reader {
-    width: 100%;
-    flex-grow: 1;
-}
-
-.qr-scanner-footer {
-    padding: 20px;
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #fff;
-}
-
-/* Completion Overlay */
-.completion-overlay {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-    pointer-events: none;
-}
-
-.completion-overlay.show {
-    display: flex; /* display:noneを上書きして表示する */
-    justify-content: center; /* 水平方向中央揃え */
-    align-items: center;     /* 垂直方向中央揃え */
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.completion-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 2; /* canvasより手前に表示 */
-    /* 追加・修正 */
-    max-width: 90%; /* 画面幅の90%を超えないようにする */
-    padding: 20px; /* コンテンツの内側に余白 */
-    box-sizing: border-box; /* paddingを含めて幅を計算 */
-    background-color: rgba(0, 0, 0, 0.5); /* 背景を追加して見やすくする */
-    border-radius: 10px;
-}
-
-/* 紙吹雪用のcanvasを画面全体に広げ、コンテンツの背面に配置 */
-#confetti-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1; /* コンテンツより背面に表示 */
-    pointer-events: none; /* canvasがクリックイベントを奪わないようにする */
-}
-
-.completion-title {
-    font-size: clamp(40px, 15vw, 90px); /* 最小40px, 基本15vw, 最大90px */
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 0 15px #3498db, 0 0 25px #3498db;
-    margin: 0;
-}
-
-.completion-message {    
-    text-align: center;
-    font-size: 1.2rem;
-    color: #ecf0f1;
-    margin: 20px 0 40px;
-    max-width: 500px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* フッター */
-footer {
-    margin-top: 20px;
+    justify-content: center;
+    padding: 0.4em 1.6em;
+    min-width: 10rem;
+    white-space: nowrap;
+    box-sizing: border-box;
     font-size: 0.8rem;
-    color: #bdc3c7;
-    text-align: center;
-}
-
-footer a {
-    color: #3498db;
+    color: #00b5ad;
     text-decoration: none;
+    border: 1px #00b5ad solid;
+    border-radius: 20px;
+    transition: 0.4s ease;
 }
-footer a:hover {
-    text-decoration: underline;
+.button-2:hover { color: #fff; background: #00b5ad; }
+
+/* ==========================================================================
+   4. Stamp Cards (Used on both Participant and Admin pages)
+   ========================================================================== */
+
+.stamp-card {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
+    position: relative;
+    margin-bottom: 20px;
 }
 
-/* --- 管理者ページ専用スタイル --- */
-.admin-form-group {
-    /* display: flex;  このルールは個別のカード内に移動 */
-    /* align-items: center; */
-    margin-bottom: 15px;
-}
-/* スタンプカード内のフォームグループにのみFlexboxを適用 */
-.stamp-card .admin-form-group {
-    display: flex; /* Flexboxを適用して子要素を揃える */
-    align-items: center; /* 垂直方向の中央揃え */
-}
-.admin-form-group label {
-    width: 90px;
-    font-weight: bold;
-    flex-shrink: 0; /* ラベルが縮まないようにする */
-}
-.admin-form-group input,
-.admin-form-group textarea,
-.admin-form-group select {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #7f8c8d;
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    flex-grow: 1; /* 残りのスペースを埋める */
-    width: 10px; /* flex-growを優先させるための最小幅 */
-    box-sizing: border-box; /* paddingとborderをwidthに含める */
-    font-family: inherit;
-}
-.admin-form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-.checkbox-group {
-    display: flex !important;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-.checkbox-group input[type="checkbox"] {
-    width: 20px !important;
-    height: 20px !important;
-    margin: 0;
-    cursor: pointer;
-}
-.checkbox-group label {
-    width: auto !important;
-    cursor: pointer;
-}
-.qr-code-container {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #fff;
-    display: inline-block; /* 中央寄せのため */
-    border-radius: 5px;
-    position: relative; /* 中央テキストの基準位置 */
-    line-height: 0; /* 余分な下の隙間を削除 */
-}
-
-.qr-center-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.9); /* 少し透過した白 */
-    color: #2c3e50;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 14px;
-    border: 1px solid #bdc3c7;
-    pointer-events: none; /* テキストがクリックイベントを奪わないようにする */
-    white-space: nowrap; /* テキストが改行しないようにする */
-}
+.stamp-card:hover { transform: translateY(-3px); }
 
 .stamp-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* このルールは重複しているため削除可能ですが、今回は残します */
+    margin-bottom: 15px;
 }
-.delete-btn {
-    position: absolute; /* 絶対配置に変更 */
-    top: 10px;          /* 上から10pxの位置 */
-    right: 10px;        /* 右から10pxの位置 */
-    width: 32px;
-    height: 32px;
-    background-color: #5a6493ff;
-    color: #fff;
-    border: none;
-    border-radius: 50%; /* 円形にする */
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    /* SVGを中央に配置するためのFlexbox設定 */
+
+.card-title {
+    font-size: 1.4rem;
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.stamp-image-container { text-align: center; margin: 15px 0; }
+.stamp-icon {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--container-bg);
+    border: 3px solid var(--border-color);
+    transition: border-color 0.3s ease;
+}
+
+/* ==========================================================================
+   5. Admin Interface Elements
+   ========================================================================== */
+
+/* Form Groups */
+.admin-form-group {
+    margin-bottom: 15px;
     display: flex;
-    justify-content: center;
     align-items: center;
 }
-.delete-btn:hover {
-    background-color: #c0392b;
-}
-.btn-secondary {
-    background-color: #27ae60;
-}
-.btn-secondary:hover:not(:disabled) {
-    background-color: #229954;
-}
 
-/* 小さいボタン用のスタイル */
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    width: auto; /* 幅を自動調整 */
-    display: inline-block; /* ラベルとして機能させるため */
-}
-
-/* 管理者ページのフォームでラベルと入力を横並びにするためのラッパー */
-.admin-form-row {
-    display: flex;
-    align-items: center; /* 垂直方向の中央揃え */
-    width: 100%;
-}
-.admin-form-row > label {
+.admin-form-group label {
     width: 90px;
     font-weight: bold;
     flex-shrink: 0;
 }
 
-/* 管理者ページのヒント画像コントロール */
-.hint-image-controls,
-.stamped-image-controls {
-    flex-grow: 1; /* 残りのスペースを埋める */
-    /* width指定はflex-growに任せるため削除 */
-}
-
-/* ヒント画像追加ボタン（実体はlabel）のスタイル */
-.hint-image-controls > label.btn:not(.button-2),
-.stamped-image-controls > label.btn:not(.button-2) {
-    width: 100%;
-    box-sizing: border-box; /* paddingを含めて幅を計算 */
-    text-align: center;
-}
-
-.hint-image-preview-wrapper {
-    display: flex;
-    flex-direction: column; /* プレビューと削除ボタンを縦に並べる */
-    align-items: flex-start; /* 全体を左寄せ */
-    gap: 10px;
-    position: relative; /* 削除ボタンの配置基準 */
-    width: 100%;
-}
-.hint-image-preview {
-    max-width: 100%; /* 幅いっぱいに表示 */
-    height: auto;
+.admin-form-group input,
+.admin-form-group textarea,
+.admin-form-group select {
+    padding: 8px;
     border-radius: 4px;
-}
-
-/* ヒント画像プレビューの削除ボタン */
-.hint-image-preview-wrapper .delete-btn {
-    position: absolute; /* プレビュー画像の右上に配置 */
-    top: 5px;
-    right: 5px;
-}
-
-/* 管理者ページのタイトルとコンプリートメッセージ入力欄の幅を調整 */
-input#rally-title,
-textarea#completion-message {
-    width: 100%;
-}
-
-/* 管理者ページの地図コンテナ */
-.map-container {
-    height: 250px; /* 地図の高さ */
-    margin: 15px 0;
-    border-radius: 5px;
-}
-
-/* 地図表示切り替えリンク */
-.map-toggle-link {
-    display: inline-block;
-    margin: 10px 0 5px;
-    color: #3498db;
-    text-decoration: none;
-    font-weight: bold;
-}
-.map-toggle-link:hover {
-    text-decoration: underline;
-}
-
-/* 地図のラッパー（開閉アニメーション用） */
-.map-wrapper {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-}
-.map-wrapper.show {
-    max-height: 300px; /* map-containerの高さ + marginより大きい値 */
-}
-
-/* 地図関連のグループはFlexboxの影響を受けないようにし、幅を100%確保する */
-.stamp-card .map-toggle-group,
-.stamp-card .map-container-group {
-    display: block; /* Flexboxを解除して通常のブロック要素に戻す */
-    width: 100%;    /* 親要素の幅いっぱいに広がるようにする */
-}
-
-.map-toggle-group {
-    margin-bottom: 0; /* 下の地図コンテナとの間隔を詰める */
-}
-.map-toggle-group .map-toggle-link {
-    display: inline-block;
-    padding-top: 5px;
-}
-.map-container-group {
-    margin-top: 5px; /* 上のリンクとの間隔を少し空ける */
-}
-.admin-media-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-top: 15px;
-    gap: 20px;
-    flex-wrap: wrap; /* 画面が狭い場合に折り返す */
-}
-
-.media-item {
-    text-align: center;
-    flex: 1; /* 横並び時に均等な幅を確保 */
-    min-width: 220px; /* 折り返す際の最小幅 */
-}
-
-/* 画面幅が500px以下の場合、縦並びにする */
-@media (max-width: 500px) {
-    .admin-media-container {
-        flex-direction: column;
-    }
-}
-
-/* 共有URLのQRコードコンテナ */
-#url-qrcode-container {
-    margin-top: 20px;
-    text-align: center; /* 中のpタグを中央寄せ */
-}
-/* 共有URLのQRコード自体を中央寄せ */
-#url-qrcode-container #url-qrcode {
-    display: flex;
-    justify-content: center;
-}
-
-/* --- 共有モーダル用のスタイル --- */
-.modal-overlay {
-    display: none; /* デフォルトは非表示 */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 3000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    pointer-events: none;
-}
-
-.modal-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.modal-content {
-    background-color: #34495e;
-    padding: 30px 40px;
-    border-radius: 15px; /* 少し角を丸くして柔らかい印象に */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    text-align: center;
-    position: relative;
-    max-width: 90%;
-    width: 500px;
-    max-height: 85vh;
-    display: flex; /* Flexboxコンテナに変更 */
-    flex-direction: column; /* 子要素を縦に並べる */
-    overflow: hidden; /* 子要素のスクロールに任せる */
-}
-
-.modal-title {
-    margin-top: 0;
-    color: #3498db;
-}
-
-.modal-description {
-    margin-bottom: 20px;
-}
-
-.url-copy-container {
-    position: relative;
-}
-
-#modal-url-output {
-    width: 100%;
-    height: 60px; /* 高さを小さく調整 */
-    resize: none; /* リサイズを無効化 */
-    /* 他の入力欄とスタイルを統一 */
-    padding: 8px 40px 8px 8px; /* 右側にボタン用のスペースを確保 */
-    border-radius: 4px;
-    border: 1px solid #7f8c8d;
-    background-color: #ecf0f1;
-    color: #2c3e50;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    flex-grow: 1;
+    width: 10px; /* flex-grow priority */
     box-sizing: border-box;
     font-family: inherit;
 }
 
-.copy-btn {
-    position: absolute;
-    top: 50%;
-    right: 8px;
-    transform: translateY(-50%);
-    background-color: #7f8c8d;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.2s ease;
+.admin-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
 }
 
-.copy-btn:hover {
-    background-color: #95a5a6;
-}
-
-.modal-content #modal-qrcode {
-    display: inline-block; /* text-align:centerで中央寄せするため */
-    background-color: #fff; /* 白い背景 */
-    padding: 15px; /* QRコードの周りに余白 */
-    border-radius: 8px; /* 角を少し丸める */
-    line-height: 0; /* 余分な下の隙間を削除 */
-}
-
-/* QRコードとダウンロードボタンのラッパー */
-#modal-qrcode-wrapper {
-    position: relative;
-    display: inline-block; /* text-align:centerで中央寄せするため */
-}
-
-.download-btn {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background-color: rgba(44, 62, 80, 0.7); /* 半透明の背景 */
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.2s ease;
-}
-
-.download-btn:hover {
-    background-color: rgba(52, 152, 219, 0.9);
-}
-
-.modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 2.5rem;
-    color: #fff;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-/* --- 初回訪問モーダル用のスタイル --- */
-.welcome-modal-body {
-    flex-grow: 1; /* 利用可能なスペースを埋める */
-    overflow-y: auto; /* このエリアだけをスクロールさせる */
-    text-align: left;
-    padding-right: 15px; /* スクロールバーのスペースを確保 */
-    margin: 20px -15px 30px 0; /* 左右のネガティブマージンでpaddingを相殺 */
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: #bdc3c7;
-    /* スクロールバーのスタイル（モダンブラウザ向け） */
-    scrollbar-width: thin;
-    scrollbar-color: #7f8c8d #34495e;
-}
-
-/* スクロールバーのスタイル（WebKit系ブラウザ向け） */
-.welcome-modal-body::-webkit-scrollbar {
-    width: 8px;
-}
-.welcome-modal-body::-webkit-scrollbar-track {
-    background: transparent; /* トラックは透明に */
-}
-.welcome-modal-body::-webkit-scrollbar-thumb {
-    background-color: #7f8c8d;
-    border-radius: 4px;
-}
-
-.welcome-modal-body p {
-    margin: 10px 0;
-}
-
-.important-notes {
-    background-color: rgba(231, 76, 60, 0.1);
-    border-left: 4px solid #e74c3c;
-    padding: 10px 20px;
-    margin: 20px 0;
-    border-radius: 0 5px 5px 0;
-}
-
-.important-notes p {
-    color: #f1c40f;
-    margin-top: 0;
-}
-.important-notes ul {
-    padding-left: 20px;
-}
-/* 各ポイントのQRコードとダウンロードボタンのラッパー */
-.point-qrcode-wrapper {
-    position: relative;
-    display: inline-block;
-}
-
-/* --- 自作チュートリアル用のスタイル --- */
-.tutorial-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999; /* ポップオーバーより手前に来るように調整 */
-    background: rgba(44, 62, 80, 0.85);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    cursor: pointer; /* クリックで閉じられることを示す */
-}
-.tutorial-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.tutorial-popover {
-    position: fixed; /* 画面中央に固定 */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95); /* 中央寄せ + 表示前スケール */
-    z-index: 10000;
-    background: #34495e; /* モーダルコンテンツと同じ背景色 */
-    color: #ecf0f1;
-    padding: 30px 40px;
-    border-radius: 5px;
-    width: 400px;
-    max-width: 90vw;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none; /* showクラスが付くまでは操作不可 */
-}
-.tutorial-popover.show {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    pointer-events: auto;
-}
-
-.tutorial-popover h4 {
-    margin: 0 0 10px 0;
-    color: #3498db;
-}
-
-.tutorial-image {
-    width: 100%;
-    height: auto; /* アスペクト比を維持 */
-    border-radius: 5px;
-    margin: 15px 0; /* 上下のマージン */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.tutorial-popover p {
-    margin: 0 0 25px 0;
-    font-size: 0.9rem;
-}
-
-.tutorial-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-/* チュートリアルのボタン幅を調整 */
-.tutorial-navigation .btn {
-    width: auto;
-    min-width: 80px;
-    padding: 8px 16px;
-}
-
-.tutorial-navigation .step-counter {
-    font-size: 0.8rem;
-    color: #bdc3c7;
-}
-
-/* ユーザー指定のボタンスタイル */
-.button-2 {
-  display: inline-flex; /* Flexboxを使用して中央揃えを確実にする */
-  align-items: center; /* 垂直中央揃え */
-  justify-content: center; /* 水平中央揃え */
-  padding: 0.4em 1.6em;
-  min-width: 10rem; /* ボタンの最小幅をrem単位で指定し、安定させる */
-  white-space: nowrap; /* テキストの折り返しを禁止 */
-  box-sizing: border-box; /* paddingとborderをwidthに含める */
-  font-size: 0.8rem;
-  color: #00b5ad;
-  text-decoration: none;
-  user-select: none;
-  border: 1px #00b5ad solid;
-  border-radius: 20px;
-  transition: 0.4s ease;
-}
-
-.button-2:hover {
-  color: #fff;
-  background: #00b5ad;
-}
-
-/* 垂直レイアウト（ラベルと入力を縦に並べる） */
+/* Vertical Form Layout (Admin Specific) */
 .vertical-group {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -921,142 +260,292 @@ textarea#completion-message {
 .vertical-group label {
     width: 100% !important;
     margin-bottom: 2px !important;
-    font-weight: bold;
-    color: #3498db;
+    color: var(--accent-color);
 }
 
 .vertical-group input,
 .vertical-group textarea {
     width: 100% !important;
-    box-sizing: border-box;
     padding: 12px !important;
     font-size: 1.1rem !important;
 }
 
-/* 座標設定方法の選択UI */
-.coord-selector-wrapper {
-    display: flex;
+/* Checkboxes */
+.checkbox-group {
+    display: flex !important;
     align-items: center;
-    width: 100%;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.method-select {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #7f8c8d;
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    font-family: inherit;
-    font-size: 0.95rem;
+.checkbox-group input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0;
     cursor: pointer;
-    width: 100%; /* 垂直レイアウト時は100% */
-    box-sizing: border-box;
 }
 
-.coord-section {
-    width: 100%;
+.checkbox-group label { width: auto !important; }
+
+/* Admin Delete Buttons */
+.delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(90, 100, 147, 0.8);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+.delete-btn:hover { background-color: var(--danger-hover); }
+
+/* QR Code Display in Admin */
+.qr-code-container {
     margin-top: 15px;
     padding: 15px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    border: 1px solid #7f8c8d;
-    box-sizing: border-box;
-    /* スムーズな表示切り替えのためのアニメーション */
-    animation: fadeInSection 0.3s ease-out;
+    background-color: #fff;
+    display: inline-block;
+    border-radius: 5px;
+    line-height: 0;
 }
 
-@keyframes fadeInSection {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+.point-qrcode-wrapper { position: relative; display: inline-block; }
+
+.admin-media-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.coord-sections-container {
-    min-height: 100px; /* 切り替え時のガクつきを抑えるための最小高さ */
-}
-
-.coord-hint {
-    font-size: 0.85rem;
-    color: #f1c40f;
-    margin: 10px 0 0 0;
+.media-item {
     text-align: center;
+    flex: 1;
+    min-width: 220px;
+}
+
+/* ==========================================================================
+   6. Participant Features
+   ========================================================================== */
+
+/* Hint Container */
+.hint-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.hint-text {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 15px;
+    background-color: var(--container-bg);
+    border-left: 4px solid var(--accent-color);
+}
+
+.hint-image-wrapper { width: 100%; text-align: center; }
+.hint-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    border: 2px solid var(--border-color);
+}
+
+.distance-info {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+/* QR Scanner Page */
+.qr-scanner-page {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: #000;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+.qr-scanner-page.show { transform: translateY(0); }
+
+.qr-scanner-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    position: relative;
+}
+.qr-scanner-header .close-btn {
+    position: absolute; left: 15px;
+    font-size: 2.5rem; color: #fff; background: none; border: none; cursor: pointer;
+}
+.qr-scanner-header .title { margin: 0 auto; font-size: 1.2rem; }
+
+#qr-reader { width: 100%; flex-grow: 1; }
+.qr-scanner-footer {
+    padding: 20px; text-align: center;
+    background-color: rgba(0, 0, 0, 0.5); color: #fff;
+}
+
+/* ==========================================================================
+   7. Modals & Overlays
+   ========================================================================== */
+
+.modal-overlay {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+.modal-content {
+    background-color: var(--container-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    text-align: center;
+    position: relative;
+    max-width: 90%;
+    width: 500px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.large-modal { width: 800px !important; max-width: 95vw !important; }
+
+.modal-title { margin-top: 0; color: var(--accent-color); }
+.modal-description { margin-bottom: 20px; }
+.modal-close-btn {
+    position: absolute; top: 10px; right: 15px;
+    font-size: 2.5rem; color: #fff; background: none; border: none; cursor: pointer;
+}
+
+/* Share URL Content */
+.url-copy-container { position: relative; width: 100%; }
+#modal-url-output {
+    width: 100%; height: 70px; resize: none;
+    padding: 8px 45px 8px 12px;
+    border-radius: 4px; border: 1px solid var(--border-color);
+    background-color: var(--input-bg); color: var(--input-text);
+    box-sizing: border-box; font-family: inherit; font-size: 0.9rem;
+}
+.copy-btn {
+    position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    background-color: var(--border-color); color: #fff; border: none;
+    border-radius: 4px; width: 32px; height: 32px; cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+}
+
+/* Completion View */
+.completion-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000; display: none;
+    justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.completion-overlay.show { display: flex; opacity: 1; pointer-events: auto; }
+
+.completion-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    max-width: 90%; padding: 30px; border-radius: 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+#confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.completion-title {
+    font-size: clamp(40px, 12vw, 80px);
+    font-weight: 700; color: #fff;
+    text-shadow: 0 0 15px var(--accent-color); margin: 0;
+}
+.completion-message {
+    text-align: center; font-size: 1.2rem; color: var(--text-color);
+    margin: 20px 0 30px; max-width: 500px;
+}
+
+/* Instructions / Welcome Modal */
+.welcome-modal-body {
+    text-align: left; overflow-y: auto; padding-right: 15px;
+    margin: 15px 0 25px 0; font-size: 0.95rem; line-height: 1.6;
+}
+.important-notes {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid var(--danger-color);
+    padding: 15px; margin: 20px 0; border-radius: 0 5px 5px 0;
+}
+.important-notes p { color: var(--warning-color); font-weight: bold; margin-bottom: 5px; }
+
+/* ==========================================================================
+   8. Map & Location UI (Admin)
+   ========================================================================== */
+
+#modal-map-container { width: 100%; height: 60vh; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--accent-hover); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+.coord-selector-wrapper { margin-top: 10px; }
+.coord-section {
+    margin-top: 12px; padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px; border: 1px solid var(--border-color);
+    animation: fadeInSection 0.3s ease-out;
 }
 
 .coord-display-info {
-    margin-top: 15px;
-    margin-bottom: 25px; /* ヒントとの間に空白を追加 */
-    padding: 12px;
-    background-color: #1a252f;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    text-align: center;
-    border-left: 4px solid #3498db;
+    margin: 15px 0 20px; padding: 12px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 6px; text-align: center;
+    border-left: 4px solid var(--accent-color);
 }
 
-.coord-display-info p {
-    margin: 0;
+.get-location-btn { background-color: var(--success-color) !important; color: #fff !important; }
+
+/* ==========================================================================
+   9. Animations
+   ========================================================================== */
+
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes fadeInSection { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ==========================================================================
+   10. Responsive Tweaks
+   ========================================================================== */
+
+@media (max-width: 500px) {
+    .container { padding: 20px; }
+    .title { font-size: 1.8rem; }
+    .admin-form-group { flex-direction: column; align-items: flex-start; }
+    .admin-form-group label { width: 100%; margin-bottom: 5px; }
+    .admin-form-group input, .admin-form-group select, .admin-form-group textarea { width: 100%; }
+    .admin-media-container { flex-direction: column; }
 }
 
-.hint-section-container {
-    animation: fadeInSection 0.3s ease-out;
+@media (max-width: 400px) {
+    .completion-title { font-size: 32px; }
+    .card-title { font-size: 1.2rem; }
+    .stamp-icon { width: 120px; height: 120px; }
 }
-
-.get-location-btn {
-    width: auto !important;
-    padding: 8px 20px !important;
-    font-size: 0.9rem !important;
-    background-color: #27ae60 !important;
-    display: inline-block !important;
-}
-
-.get-location-btn:hover {
-    background-color: #2ecc71 !important;
-}
-
-/* 拡大地図モーダル用 */
-.large-modal {
-    width: 800px !important;
-    max-width: 95vw !important;
-}
-
-#modal-map-container {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    border: 1px solid #34495e;
-}
-
-.btn-sm-text {
-    font-size: 0.85rem !important;
-    padding: 6px 12px !important;
-}
-
-/* --- 画像入力の最適化 --- */
-.input-hint {
-    font-size: 0.8rem;
-    color: #95a5a6;
-    margin: 5px 0 0 0;
-    line-height: 1.4;
-}
-
-.hint-image-url-input, .stamped-image-url-input {
-    width: 100% !important;
-}
-
-/* スマホ対応：横幅が狭い場合はラベルと入力を上下に並べる */
-@media (max-width: 480px) {
-    .stamp-card .admin-form-group,
-    .admin-form-row {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .admin-form-group label,
-    .admin-form-row > label {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    .admin-form-group input,
-    .admin-form-group textarea,
-    .admin-form-group select {
-        width: 100%;
-    }
-}
-
