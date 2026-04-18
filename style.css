@@ -1029,3 +1029,35 @@ textarea#completion-message {
     font-size: 0.85rem !important;
     padding: 6px 12px !important;
 }
+
+/* --- 画像入力モード切り替え用スタイル --- */
+.image-mode-selector {
+    display: flex;
+    gap: 15px;
+    margin: 0 0 10px 80px; /* 他の入力欄とインデントを合わせる */
+    font-size: 0.9rem;
+    color: #bdc3c7;
+}
+.image-mode-selector label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    width: auto !important; /* グローバル設定の上書き */
+}
+.image-mode-selector input[type="radio"] {
+    width: auto !important;
+    margin: 0;
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    margin: 5px 0 0 80px; /* インデントを合わせる */
+    line-height: 1.4;
+}
+
+.hint-image-url-input, .stamped-image-url-input {
+    width: calc(100% - 80px) !important;
+    margin-left: 80px !important;
+}

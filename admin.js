@@ -77,7 +77,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const methodSelect = pointElements[index].querySelector('.method-select');
             point.coordMethod = methodSelect ? methodSelect.value : (point.coordMethod || 'current');
 
-            // hintImageSrcはファイル入力なので、ここでは同期しない（イベントリスナーで直接更新）
+            // 画像指定モードの同期
+            const hintImageMode = document.querySelector(`input[name="hint-image-mode-${index}"]:checked`)?.value;
+            if (hintImageMode) point.hintImageMode = hintImageMode;
+            if (point.hintImageMode === 'url') {
+                point.hintImageSrc = document.getElementById(`hint-image-url-${index}`)?.value || '';
+            }
+
+            const stampedImageMode = document.querySelector(`input[name="stamped-image-mode-${index}"]:checked`)?.value;
+            if (stampedImageMode) point.stampedImageMode = stampedImageMode;
+            if (point.stampedImageMode === 'url') {
+                point.stampedImageSrc = document.getElementById(`stamped-image-url-${index}`)?.value || '';
+            }
+
+            // hintImageSrc(file方式)などはイベントリスナーで直接更新されるためここでは上書きしない
         });
     }
  
@@ -164,21 +177,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="use-hint-image-${index}">ヒント画像を入れる</label>
                 </div>
 
-                <!-- ヒント画像コンテナ -->
                 <div id="hint-image-section-container-${index}" class="hint-section-container" style="${point.useHintImage ? '' : 'display: none;'}">
                     <div class="admin-form-group">
+                        <div class="image-mode-selector">
+                            <label><input type="radio" name="hint-image-mode-${index}" value="file" ${point.hintImageMode !== 'url' ? 'checked' : ''} class="hint-image-mode-radio" data-index="${index}"> 画像をアップロード</label>
+                            <label><input type="radio" name="hint-image-mode-${index}" value="url" ${point.hintImageMode === 'url' ? 'checked' : ''} class="hint-image-mode-radio" data-index="${index}"> URLを指定</label>
+                        </div>
                         <div class="admin-form-row">
                             <div class="hint-image-controls">
-                                ${point.hintImageSrc
-                                    ? `
-                                        <div class="hint-image-preview-wrapper">
-                                            <img src="${point.hintImageSrc}" alt="ヒント画像プレビュー" class="hint-image-preview">
-                                            <button class="delete-btn delete-hint-image-btn" data-index="${index}" title="ヒント画像を削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
-                                        </div>
-                                    ` : `
-                                        <label for="hint-image-upload-${index}" class="button-2">ヒント画像を追加</label>
-                                        <input type="file" id="hint-image-upload-${index}" accept="image/*" class="hint-image-upload-input" data-index="${index}" style="display: none;" >
-                                    `}
+                                <div id="hint-image-file-input-${index}" style="${point.hintImageMode !== 'url' ? '' : 'display: none;'}">
+                                    ${point.hintImageSrc && point.hintImageSrc.startsWith('data:')
+                                        ? `
+                                            <div class="hint-image-preview-wrapper">
+                                                <img src="${point.hintImageSrc}" alt="ヒント画像プレビュー" class="hint-image-preview">
+                                                <button class="delete-btn delete-hint-image-btn" data-index="${index}" title="ヒント画像を削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
+                                            </div>
+                                        ` : `
+                                            <label for="hint-image-upload-${index}" class="button-2">ヒント画像を選択</label>
+                                            <input type="file" id="hint-image-upload-${index}" accept="image/*" class="hint-image-upload-input" data-index="${index}" style="display: none;" >
+                                        `}
+                                </div>
+                                <div id="hint-image-url-input-${index}" style="${point.hintImageMode === 'url' ? '' : 'display: none;'}">
+                                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageMode === 'url' ? point.hintImageSrc : ''}" placeholder="https://example.com/image.jpg" class="hint-image-url-input" data-index="${index}">
+                                    <p class="input-hint">※Googleドライブ, Gyazo, Dropbox等の直接リンクを入力してください。</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -192,11 +214,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- 達成画像アップロードコンテナ -->
                 <div id="stamped-image-section-container-${index}" class="hint-section-container" style="${point.useCustomStampedImage ? '' : 'display: none;'}">
                     <div class="admin-form-group">
+                        <div class="image-mode-selector">
+                            <label><input type="radio" name="stamped-image-mode-${index}" value="file" ${point.stampedImageMode !== 'url' ? 'checked' : ''} class="stamped-image-mode-radio" data-index="${index}"> 画像をアップロード</label>
+                            <label><input type="radio" name="stamped-image-mode-${index}" value="url" ${point.stampedImageMode === 'url' ? 'checked' : ''} class="stamped-image-mode-radio" data-index="${index}"> URLを指定</label>
+                        </div>
                         <div class="admin-form-row">
-                            <label for="image-upload-${index}">達成画像:</label>
                             <div class="stamped-image-controls">
-                                <label for="image-upload-${index}" class="button-2">達成画像を選択</label>
-                                <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}" style="display: none;">
+                                <div id="stamped-image-file-input-${index}" style="${point.stampedImageMode !== 'url' ? '' : 'display: none;'}">
+                                    <label for="image-upload-${index}" class="button-2">画像ファイルを選択</label>
+                                    <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}" style="display: none;">
+                                </div>
+                                <div id="stamped-image-url-input-${index}" style="${point.stampedImageMode === 'url' ? '' : 'display: none;'}">
+                                    <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageMode === 'url' ? point.stampedImageSrc : ''}" placeholder="https://example.com/image.jpg" class="stamped-image-url-input" data-index="${index}">
+                                    <p class="input-hint">※Googleドライブ, Gyazo, Dropbox等の直接リンクを入力してください。</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                     <div class="media-item">
                         <p>画像プレビュー（達成時に表示されます）</p>
-                        <img id="image-preview-${index}" src="${point.useCustomStampedImage && point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped' ? point.stampedImageSrc : ADMIN_DEFAULT_STAMP_IMG}" alt="画像プレビュー" class="stamp-icon">
+                        <img id="image-preview-${index}" src="${point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped' ? point.stampedImageSrc : ADMIN_DEFAULT_STAMP_IMG}" alt="画像プレビュー" class="stamp-icon">
                     </div>
                     <div class="media-item" style="${point.qrRequired === false ? 'display: none;' : ''}">
                         <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
@@ -320,6 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stampedImageSrc: '',
             hint: '',
             hintImageSrc: '', // ヒント画像用のプロパティを追加
+            hintImageMode: 'file', // 'file' or 'url'
+            stampedImageMode: 'file', // 'file' or 'url'
             useHint: false,   // ヒントを使用するかどうか
             useHintImage: false, // ヒント画像を使用するかどうか
             useCustomStampedImage: false, // 独自の達成画像を使用するかどうか
@@ -704,6 +737,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+
+        // ヒント画像入力モード切り替え
+        const hintImageModeRadio = event.target.closest('.hint-image-mode-radio');
+        if (hintImageModeRadio) {
+            const index = parseInt(hintImageModeRadio.dataset.index, 10);
+            const mode = hintImageModeRadio.value;
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].hintImageMode = mode;
+                // 表示切替
+                document.getElementById(`hint-image-file-input-${index}`).style.display = mode === 'file' ? '' : 'none';
+                document.getElementById(`hint-image-url-input-${index}`).style.display = mode === 'url' ? '' : 'none';
+                updateDataSizeIndicator();
+            }
+            return;
+        }
+
+        // 達成画像入力モード切り替え
+        const stampedImageModeRadio = event.target.closest('.stamped-image-mode-radio');
+        if (stampedImageModeRadio) {
+            const index = parseInt(stampedImageModeRadio.dataset.index, 10);
+            const mode = stampedImageModeRadio.value;
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].stampedImageMode = mode;
+                // 表示切替
+                document.getElementById(`stamped-image-file-input-${index}`).style.display = mode === 'file' ? '' : 'none';
+                document.getElementById(`stamped-image-url-input-${index}`).style.display = mode === 'url' ? '' : 'none';
+                
+                // プレビューの即時反映（URLモード時）
+                if (mode === 'url') {
+                    const url = document.getElementById(`stamped-image-url-${index}`).value;
+                    document.getElementById(`image-preview-${index}`).src = url || ADMIN_DEFAULT_STAMP_IMG;
+                } else {
+                    const src = currentStampPoints[index].stampedImageSrc;
+                    document.getElementById(`image-preview-${index}`).src = (src && src.startsWith('data:')) ? src : ADMIN_DEFAULT_STAMP_IMG;
+                }
+                updateDataSizeIndicator();
+            }
+            return;
+        }
+
+        // URL直接入力時のプレビュー更新リスナー
+        if (event.target.matches('.stamped-image-url-input')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            const url = event.target.value;
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].stampedImageSrc = url;
+                document.getElementById(`image-preview-${index}`).src = url || ADMIN_DEFAULT_STAMP_IMG;
+                updateDataSizeIndicator();
+            }
+            return;
+        }
+
+        if (event.target.matches('.hint-image-url-input')) {
+            updateDataSizeIndicator();
+            return;
+        }
+
     });
 
     // 画像リサイズ処理
@@ -1025,6 +1115,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 stampedImageSrc: '',
                 hint: '',
                 hintImageSrc: '', // ヒント画像用のプロパティを追加
+                hintImageMode: 'file',
+                stampedImageMode: 'file',
                 useHint: false,
                 useHintImage: false,
                 useCustomStampedImage: false, // 独自の達成画像を使用するかどうか
