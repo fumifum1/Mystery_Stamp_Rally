@@ -22,13 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const welcomeModalCloseBtn = document.getElementById('welcome-modal-close-btn');
 
     // 画像設定の定数
-    const MAX_IMAGE_WIDTH = 400; // 画像の最大幅
-    const MAX_IMAGE_HEIGHT = 400; // 画像の最大高さ
-    const NORMAL_IMAGE_QUALITY = 0.8; // 通常のリサイズ時の画質
-    const HIGH_COMPRESSION_QUALITY = 0.6; // 高圧縮時の画質
+    const MAX_IMAGE_WIDTH = 250; // 画像の最大幅 (URLサイズ抑制のため 400->250)
+    const MAX_IMAGE_HEIGHT = 250; // 画像の最大高さ
+    const STAMP_IMAGE_QUALITY = 0.7; // 達成画像の画質
+    const HINT_IMAGE_QUALITY = 0.4;  // ヒント画像の画質 (ヒントは低画質でOK)
     const LARGE_FILE_THRESHOLD_MB = 1; // 高圧縮を適用するファイルサイズの閾値(MB)
     const LARGE_FILE_THRESHOLD_BYTES = LARGE_FILE_THRESHOLD_MB * 1024 * 1024;
-    const MAX_DATA_URL_SIZE_BYTES = 2 * 1024 * 1024; // リサイズ後の最大データサイズ(2MB)
+    const MAX_DATA_URL_SIZE_BYTES = 1.5 * 1024 * 1024; // リサイズ後の最大データサイズ(1.5MB、JSONBlob制限考慮)
 
     let currentStampPoints = [];
     // mapInstances は冒頭で宣言済みのため、ここでは追加しない
@@ -588,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (file && point) {
                 try {
                     syncDataFromUI(); // 他のフォームの値をデータに同期
-                    const resizedImageSrc = await processAndResizeImage(file);
+                    const resizedImageSrc = await processAndResizeImage(file, STAMP_IMAGE_QUALITY);
                     point.stampedImageSrc = resizedImageSrc;
                     renderUI(); // 画像処理が終わったらUIを再描画して反映
                 } catch (error) {
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (file && point) {
                 try {
                     syncDataFromUI(); // 他のフォームの値をデータに同期
-                    const resizedImageSrc = await processAndResizeImage(file);
+                    const resizedImageSrc = await processAndResizeImage(file, HINT_IMAGE_QUALITY);
                     point.hintImageSrc = resizedImageSrc;
                     renderUI(); // 画像処理が終わったらUIを再描画して反映
                 } catch (error) {
@@ -618,10 +618,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 画像リサイズ処理
-    async function processAndResizeImage(file) {
+    async function processAndResizeImage(file, targetQuality = 0.7) {
         return new Promise((resolve, reject) => {
-            // ファイルサイズに応じて圧縮品質を決定
-            const quality = file.size > LARGE_FILE_THRESHOLD_BYTES ? HIGH_COMPRESSION_QUALITY : NORMAL_IMAGE_QUALITY;
+            // 元々の品質設定を上書き（指定があればそれを使う）
+            const quality = targetQuality;
 
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // リサイズ後のデータサイズが大きすぎる場合はエラーを投げる
                     if (dataUrl.length > MAX_DATA_URL_SIZE_BYTES) {
-                        return reject(new Error('画像ファイルが非常に大きいため、処理できませんでした。\nお手数ですが、より小さいサイズの画像を選択してください。'));
+                        return reject(new Error('画像ファイルが大きすぎます。もう少し小さい画像を選択するか、画像の数を減らしてください。'));
                     }
                     resolve(dataUrl);
                 };
@@ -731,28 +731,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         throw new Error('Locationヘッダーが取得できませんでした。');
                     }
+                } else if (response.status === 413) {
+                    throw new Error('画像データが大きすぎて保存できません。画像の数を減らすか、より小さな画像を使用してください。');
                 } else {
                     throw new Error(`アップロード失敗 (Status: ${response.status})`);
                 }
             } catch (uploadError) {
-                // jsonblob.comが利用できない場合は、圧縮URLにフォールバック
+                // jsonblob.comが利用できない場合、またはデータ制限を超えた場合は、圧縮URLにフォールバック（ただし警告を出す）
                 console.warn('jsonblob.comへのアップロードに失敗しました。圧縮URLで生成します。', uploadError);
+                
                 const compressed = pako.deflate(jsonString);
                 const base64 = uint8ArrayToBase64(compressed);
                 const encoded = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 fullUrl = `${baseUrl}?data=${encoded}`;
+                
+                // データ量が多すぎる場合はユーザーに警告
+                if (fullUrl.length > 5000) {
+                    alert('注意：画像データが多いため、生成されたQRコードが非常に複雑になっています。古いスマホでは読み取れない可能性があるため、画像の数を減らすことをお勧めします。');
+                }
             }
 
             modalUrlOutput.value = fullUrl;
             modalQrcodeElement.innerHTML = '';
             const qrCode = new QRCodeStyling({
                 width: 200, height: 200, data: fullUrl, margin: 0,
-                qrOptions: { errorCorrectionLevel: 'H' },
+                qrOptions: { errorCorrectionLevel: 'M' }, // H (30%) から M (15%) に変更して密度を下げる
                 dotsOptions: { type: 'dots', color: '#3498db', gradient: { type: 'linear', rotation: 90, colorStops: [{ offset: 0, color: '#f1c40f' }, { offset: 1, color: '#e74c3c' }] } },
                 cornersSquareOptions: { type: 'dot', color: '#e67e22' },
                 cornersDotOptions: { type: 'dot', color: '#e67e22' },
                 backgroundOptions: { color: '#ffffff' },
-                imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 4 },
+                imageOptions: { hideBackgroundDots: true, imageSize: 0.3, margin: 4 }, // ロゴサイズを少し小さく
                 image: createTextDataUrl('Rally')
             });
             qrCode.append(modalQrcodeElement);
