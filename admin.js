@@ -55,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const qrRequiredInput = document.getElementById(`qr-required-${index}`);
             point.qrRequired = qrRequiredInput ? qrRequiredInput.checked : (point.qrRequired !== undefined ? point.qrRequired : true);
             
+            const useHintInput = document.getElementById(`use-hint-${index}`);
+            point.useHint = useHintInput ? useHintInput.checked : (point.useHint !== undefined ? point.useHint : !!point.hint);
+
+            const useHintImageInput = document.getElementById(`use-hint-image-${index}`);
+            point.useHintImage = useHintImageInput ? useHintImageInput.checked : (point.useHintImage !== undefined ? point.useHintImage : !!point.hintImageSrc);
+
             // 重要：QRスキャン不要な場合は文言を「スタンプゲット！」に固定
             if (point.qrRequired === false) {
                 point.acquisitionButtonLabel = 'スタンプゲット！';
@@ -93,10 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>③ 手動入力</option>
                     </select>
                 </div>
-                <div class="admin-form-group checkbox-group">
-                    <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
-                    <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
-                </div>
 
                 <!-- 各セクションを保持するコンテナ -->
                 <div class="coord-sections-container">
@@ -134,27 +136,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="hidden" id="hidden-lat-${index}" value="${point.latitude || 0}">
                     <input type="hidden" id="hidden-lon-${index}" value="${point.longitude || 0}">
                 </div>
-                <div class="admin-form-group">
-                    <label for="hint-${index}">ヒント:</label>
-                    <textarea id="hint-${index}">${point.hint || ''}</textarea>
+
+                <div class="admin-form-group checkbox-group" style="margin-top: 20px;">
+                    <input type="checkbox" id="qr-required-${index}" ${point.qrRequired !== false ? 'checked' : ''}>
+                    <label for="qr-required-${index}">QRコードのスキャンを必須にする</label>
                 </div>
-                <div class="admin-form-group">
-                    <div class="admin-form-row">
-                        <label for="hint-image-upload-${index}">ヒント画像:</label>
-                        <div class="hint-image-controls">
-                            ${point.hintImageSrc
-                                ? `
-                                    <div class="hint-image-preview-wrapper">
-                                        <img src="${point.hintImageSrc}" alt="ヒント画像プレビュー" class="hint-image-preview">
-                                        <button class="delete-btn delete-hint-image-btn" data-index="${index}" title="ヒント画像を削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
-                                    </div>
-                                ` : `
-                                    <label for="hint-image-upload-${index}" class="button-2">ヒント画像を追加</label>
-                                    <input type="file" id="hint-image-upload-${index}" accept="image/*" class="hint-image-upload-input" data-index="${index}" style="display: none;" >
-                                `}
+
+                <div class="admin-form-group checkbox-group">
+                    <input type="checkbox" id="use-hint-${index}" ${point.useHint ? 'checked' : ''} class="use-hint-checkbox" data-index="${index}">
+                    <label for="use-hint-${index}">ヒント(文字)を入力する</label>
+                </div>
+
+                <!-- ヒント入力コンテナ -->
+                <div id="hint-section-container-${index}" class="hint-section-container" style="${point.useHint ? '' : 'display: none;'}">
+                    <div class="admin-form-group">
+                        <textarea id="hint-${index}" placeholder="ヒントを入力してください">${point.hint || ''}</textarea>
+                    </div>
+                </div>
+
+                <div class="admin-form-group checkbox-group">
+                    <input type="checkbox" id="use-hint-image-${index}" ${point.useHintImage ? 'checked' : ''} class="use-hint-image-checkbox" data-index="${index}">
+                    <label for="use-hint-image-${index}">ヒント画像を入れる</label>
+                </div>
+
+                <!-- ヒント画像コンテナ -->
+                <div id="hint-image-section-container-${index}" class="hint-section-container" style="${point.useHintImage ? '' : 'display: none;'}">
+                    <div class="admin-form-group">
+                        <div class="admin-form-row">
+                            <div class="hint-image-controls">
+                                ${point.hintImageSrc
+                                    ? `
+                                        <div class="hint-image-preview-wrapper">
+                                            <img src="${point.hintImageSrc}" alt="ヒント画像プレビュー" class="hint-image-preview">
+                                            <button class="delete-btn delete-hint-image-btn" data-index="${index}" title="ヒント画像を削除"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
+                                        </div>
+                                    ` : `
+                                        <label for="hint-image-upload-${index}" class="button-2">ヒント画像を追加</label>
+                                        <input type="file" id="hint-image-upload-${index}" accept="image/*" class="hint-image-upload-input" data-index="${index}" style="display: none;" >
+                                    `}
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="admin-form-group">
                     <div class="admin-form-row">
                         <label for="image-upload-${index}">達成画像:</label>
@@ -164,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
+
                 <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                     <div class="media-item">
                         <p>画像プレビュー（スタンプ達成時に表示されます）</p>
@@ -237,6 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stampedImageSrc: '',
             hint: '',
             hintImageSrc: '', // ヒント画像用のプロパティを追加
+            useHint: false,   // ヒントを使用するかどうか
+            useHintImage: false, // ヒント画像を使用するかどうか
             qrRequired: true,
             coordMethod: 'current'
         });
@@ -510,6 +537,42 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // ヒント画像使用チェックボックスの切り替え処理
+        const useHintImageCheckbox = event.target.closest('.use-hint-image-checkbox');
+        if (useHintImageCheckbox) {
+            const index = parseInt(useHintImageCheckbox.dataset.index, 10);
+            const isChecked = useHintImageCheckbox.checked;
+            
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].useHintImage = isChecked;
+                
+                // DOM要素の表示切り替え
+                const container = document.getElementById(`hint-image-section-container-${index}`);
+                if (container) {
+                    container.style.display = isChecked ? 'block' : 'none';
+                }
+            }
+            return;
+        }
+
+        // ヒント使用チェックボックスの切り替え処理
+        const useHintCheckbox = event.target.closest('.use-hint-checkbox');
+        if (useHintCheckbox) {
+            const index = parseInt(useHintCheckbox.dataset.index, 10);
+            const isChecked = useHintCheckbox.checked;
+            
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].useHint = isChecked;
+                
+                // DOM要素の表示切り替え
+                const container = document.getElementById(`hint-section-container-${index}`);
+                if (container) {
+                    container.style.display = isChecked ? 'block' : 'none';
+                }
+            }
+            return;
+        }
+
         // QR必須チェックボックスの切り替えを即座に反映
         if (event.target.id && event.target.id.startsWith('qr-required-')) {
             syncDataFromUI();
@@ -615,8 +678,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataToUpload = {
                 title: rallyTitle,
                 completionMessage: completionMessage,
-                points: currentStampPoints
+                points: JSON.parse(JSON.stringify(currentStampPoints)) // ディープコピーを作成
             };
+
+            // 参加者の混乱を避けるため、ヒントがオフの場合はデータを空にする
+            dataToUpload.points.forEach(point => {
+                if (!point.useHint) {
+                    point.hint = '';
+                }
+                if (!point.useHintImage) {
+                    point.hintImageSrc = '';
+                }
+                // 不要な内部フラグは削除しておく（オプション）
+                // delete point.useHint; 
+                // delete point.useHintImage;
+            });
+
             if (!dataToUpload.points || dataToUpload.points.length === 0) {
                 throw new Error("スタンプポイントが1つもありません。");
             }
@@ -836,8 +913,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 latitude: 35.681236,
                 longitude: 139.767125,
                 stampedImageSrc: '',
-                hint: '例：東京駅',
+                hint: '',
                 hintImageSrc: '', // ヒント画像用のプロパティを追加
+                useHint: false,
+                useHintImage: false,
                 qrRequired: true,
                 coordMethod: 'current'
             }
