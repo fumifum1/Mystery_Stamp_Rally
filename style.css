@@ -389,21 +389,20 @@ footer a:hover {
     align-items: center; /* 垂直方向の中央揃え */
 }
 .admin-form-group label {
-    width: 60px;
+    width: 90px;
     font-weight: bold;
     flex-shrink: 0; /* ラベルが縮まないようにする */
-    /* vertical-align と padding-top はFlexboxでは不要になるため削除 */
-    /* vertical-align: top; */
-    /* padding-top: 8px; */
 }
 .admin-form-group input,
-.admin-form-group textarea {
+.admin-form-group textarea,
+.admin-form-group select {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #7f8c8d;
     background-color: #ecf0f1;
     color: #2c3e50;
-    width: calc(100% - 60px - 20px); /* (親幅 - ラベル幅 - 隙間) */
+    flex-grow: 1; /* 残りのスペースを埋める */
+    width: 10px; /* flex-growを優先させるための最小幅 */
     box-sizing: border-box; /* paddingとborderをwidthに含める */
     font-family: inherit;
 }
@@ -501,10 +500,9 @@ footer a:hover {
     width: 100%;
 }
 .admin-form-row > label {
-    /* 他のラベルと同じスタイルを適用 */
-    width: 90px; /* ラベルが折り返さないように幅をさらに広げる */
+    width: 90px;
     font-weight: bold;
-    flex-shrink: 0; /* ラベルが縮まないようにする */
+    flex-shrink: 0;
 }
 
 /* 管理者ページのヒント画像コントロール */
@@ -589,7 +587,8 @@ textarea#completion-message {
     margin-bottom: 0; /* 下の地図コンテナとの間隔を詰める */
 }
 .map-toggle-group .map-toggle-link {
-    margin-left: 80px; /* 他の入力欄とインデントを揃える */
+    display: inline-block;
+    padding-top: 5px;
 }
 .map-container-group {
     margin-top: 5px; /* 上のリンクとの間隔を少し空ける */
@@ -1030,34 +1029,34 @@ textarea#completion-message {
     padding: 6px 12px !important;
 }
 
-/* --- 画像入力モード切り替え用スタイル --- */
-.image-mode-selector {
-    display: flex;
-    gap: 15px;
-    margin: 0 0 10px 80px; /* 他の入力欄とインデントを合わせる */
-    font-size: 0.9rem;
-    color: #bdc3c7;
-}
-.image-mode-selector label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    width: auto !important; /* グローバル設定の上書き */
-}
-.image-mode-selector input[type="radio"] {
-    width: auto !important;
-    margin: 0;
-}
-
+/* --- 画像入力の最適化 --- */
 .input-hint {
     font-size: 0.8rem;
     color: #95a5a6;
-    margin: 5px 0 0 80px; /* インデントを合わせる */
+    margin: 5px 0 0 0;
     line-height: 1.4;
 }
 
 .hint-image-url-input, .stamped-image-url-input {
-    width: calc(100% - 80px) !important;
-    margin-left: 80px !important;
-}
+    width: 100% !important;
+}
+
+/* スマホ対応：横幅が狭い場合はラベルと入力を上下に並べる */
+@media (max-width: 480px) {
+    .stamp-card .admin-form-group,
+    .admin-form-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .admin-form-group label,
+    .admin-form-row > label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .admin-form-group input,
+    .admin-form-group textarea,
+    .admin-form-group select {
+        width: 100%;
+    }
+}
+
