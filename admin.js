@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Google Drive
         if (converted.includes('drive.google.com')) {
-            const match = converted.match(/\/file\/d\/([^\/\?]+)/);
+            // Match /file/d/ID or ?id=ID
+            const match = converted.match(/\/file\/d\/([^\/\?]+)/) || converted.match(/[?&]id=([^\/\&]+)/);
             if (match && match[1]) {
                 return `https://lh3.googleusercontent.com/d/${match[1]}=w1000`;
             }
@@ -355,8 +356,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="hint-image-section-${index}" class="hint-section-container" style="${point.useHintImage ? '' : 'display: none;'}">
                 <div class="admin-form-group vertical-group">
                     <label>ヒント画像URL</label>
-                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input">
+                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}">
                     <p class="input-hint">※Googleドライブ, Gyazo等の「直リンク」に対応</p>
+                    <div class="url-preview-container" style="margin-top: 10px; text-align: center;">
+                        <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="this.style.display='none'">
+                    </div>
                 </div>
             </div>`;
     }
@@ -482,9 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const converted = convertImageDirectLink(target.value);
             if (converted !== target.value) target.value = converted;
             
-            if (target.classList.contains('stamped-url')) {
-                const preview = document.getElementById(target.dataset.preview);
-                if (preview) preview.src = target.value || ADMIN_DEFAULT_STAMP_IMG;
+            const previewId = target.dataset.preview;
+            if (previewId) {
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = target.value || (target.classList.contains('stamped-url') ? ADMIN_DEFAULT_STAMP_IMG : '');
+                    preview.style.display = target.value || target.classList.contains('stamped-url') ? 'inline-block' : 'none';
+                }
             }
             syncDataFromUI();
             updateDataSizeIndicator();
@@ -580,6 +588,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         mapModal.classList.remove('show');
         renderUI();
+    });
+
+    mapModalCancelBtn.addEventListener('click', () => {
+        mapModal.classList.remove('show');
+    });
+
+    shareModalCloseBtn.addEventListener('click', () => {
+        shareModal.classList.remove('show');
     });
 
     // Initialization
