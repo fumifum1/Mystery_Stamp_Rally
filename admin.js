@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 達成画像未設定時のデフォルトプレビュー画像
-    const ADMIN_DEFAULT_STAMP_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232ecc71' stroke='%2327ae60' stroke-width='3'/%3E%3Ctext x='50' y='62' font-family='sans-serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";
+    // 達成画像未設定(または独自の画像を使わない設定)時のデフォルトスタンプ画像
+    const ADMIN_DEFAULT_STAMP_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23e74c3c' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23e74c3c' stroke-width='1.5'/%3E%3Ctext x='50' y='53' font-family='sans-serif' font-size='14' font-weight='bold' fill='%23e74c3c' text-anchor='middle' transform='rotate(-15, 50, 53)'%3EComplete!!%3C/text%3E%3C/svg%3E";
     let mapInstances = {}; // 各スタンプカードの地図インスタンスを保持
     let modalMapInstance = null; // 拡大地図モーダル用の地図インスタンス
     let editingPointIndexForModal = null; // 現在モーダルで編集中のポイントインデックス
@@ -60,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const useHintImageInput = document.getElementById(`use-hint-image-${index}`);
             point.useHintImage = useHintImageInput ? useHintImageInput.checked : (point.useHintImage !== undefined ? point.useHintImage : !!point.hintImageSrc);
+
+            const useCustomStampedImageInput = document.getElementById(`use-custom-stamped-image-${index}`);
+            point.useCustomStampedImage = useCustomStampedImageInput ? useCustomStampedImageInput.checked : (point.useCustomStampedImage !== undefined ? point.useCustomStampedImage : (point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped'));
 
             // 重要：QRスキャン不要な場合は文言を「スタンプゲット！」に固定
             if (point.qrRequired === false) {
@@ -179,20 +183,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <div class="admin-form-group">
-                    <div class="admin-form-row">
-                        <label for="image-upload-${index}">達成画像:</label>
-                        <div class="stamped-image-controls">
-                            <label for="image-upload-${index}" class="button-2">達成画像を選択</label>
-                            <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}" style="display: none;">
+                <div class="admin-form-group checkbox-group">
+                    <input type="checkbox" id="use-custom-stamped-image-${index}" ${point.useCustomStampedImage ? 'checked' : ''} class="use-custom-stamped-image-checkbox" data-index="${index}">
+                    <label for="use-custom-stamped-image-${index}">独自の達成画像を使用する</label>
+                </div>
+
+                <!-- 達成画像アップロードコンテナ -->
+                <div id="stamped-image-section-container-${index}" class="hint-section-container" style="${point.useCustomStampedImage ? '' : 'display: none;'}">
+                    <div class="admin-form-group">
+                        <div class="admin-form-row">
+                            <label for="image-upload-${index}">達成画像:</label>
+                            <div class="stamped-image-controls">
+                                <label for="image-upload-${index}" class="button-2">達成画像を選択</label>
+                                <input type="file" id="image-upload-${index}" accept="image/*" class="image-upload-input" data-index="${index}" style="display: none;">
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                     <div class="media-item">
-                        <p>画像プレビュー（スタンプ達成時に表示されます）</p>
-                        <img id="image-preview-${index}" src="${point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped' ? point.stampedImageSrc : ADMIN_DEFAULT_STAMP_IMG}" alt="画像プレビュー" class="stamp-icon">
+                        <p>画像プレビュー（達成時に表示されます）</p>
+                        <img id="image-preview-${index}" src="${point.useCustomStampedImage && point.stampedImageSrc && point.stampedImageSrc !== 'default_stamped' ? point.stampedImageSrc : ADMIN_DEFAULT_STAMP_IMG}" alt="画像プレビュー" class="stamp-icon">
                     </div>
                     <div class="media-item" style="${point.qrRequired === false ? 'display: none;' : ''}">
                         <p>↓【現地設置用】このQRコードをスキャンすると上の画像がスタンプされます</p>
@@ -264,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hintImageSrc: '', // ヒント画像用のプロパティを追加
             useHint: false,   // ヒントを使用するかどうか
             useHintImage: false, // ヒント画像を使用するかどうか
+            useCustomStampedImage: false, // 独自の達成画像を使用するかどうか
             qrRequired: true,
             coordMethod: 'current'
         });
@@ -579,6 +592,30 @@ document.addEventListener('DOMContentLoaded', () => {
             renderUI();
             return;
         }
+
+        // 独自の達成画像使用チェックボックスの切り替え処理
+        const useCustomStampedImageCheckbox = event.target.closest('.use-custom-stamped-image-checkbox');
+        if (useCustomStampedImageCheckbox) {
+            const index = parseInt(useCustomStampedImageCheckbox.dataset.index, 10);
+            const isChecked = useCustomStampedImageCheckbox.checked;
+            
+            if (currentStampPoints[index]) {
+                currentStampPoints[index].useCustomStampedImage = isChecked;
+                
+                // DOM要素の表示切り替えとプレビューの更新
+                const container = document.getElementById(`stamped-image-section-container-${index}`);
+                if (container) {
+                    container.style.display = isChecked ? 'block' : 'none';
+                }
+                const previewImg = document.getElementById(`image-preview-${index}`);
+                if (previewImg) {
+                    previewImg.src = (isChecked && currentStampPoints[index].stampedImageSrc && currentStampPoints[index].stampedImageSrc !== 'default_stamped') 
+                        ? currentStampPoints[index].stampedImageSrc 
+                        : ADMIN_DEFAULT_STAMP_IMG;
+                }
+            }
+            return;
+        }
         // 画像アップロードの処理
         if (event.target.matches('.image-upload-input')) {
             const index = parseInt(event.target.dataset.index, 10);
@@ -700,7 +737,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 画像が設定されていないポイントには、デフォルト画像を使用する目印を付ける
             dataToUpload.points.forEach(point => {
-                if (!point.stampedImageSrc) {
+                if (!point.useCustomStampedImage) {
+                    point.stampedImageSrc = 'default_stamped';
+                } else if (!point.stampedImageSrc) {
                     point.stampedImageSrc = 'default_stamped';
                 }
             });
@@ -925,6 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hintImageSrc: '', // ヒント画像用のプロパティを追加
                 useHint: false,
                 useHintImage: false,
+                useCustomStampedImage: false, // 独自の達成画像を使用するかどうか
                 qrRequired: true,
                 coordMethod: 'current'
             }

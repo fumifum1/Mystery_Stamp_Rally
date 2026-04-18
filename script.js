@@ -1,6 +1,6 @@
 // スタンプ画像のData URI（stamp_jpgフォルダ不要）
 const NOT_STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2334495e' stroke='%237f8c8d' stroke-width='3'/%3E%3Ctext x='50' y='58' font-family='sans-serif' font-size='36' font-weight='bold' fill='%237f8c8d' text-anchor='middle'%3E%3F%3C/text%3E%3C/svg%3E";
-const STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232ecc71' stroke='%2327ae60' stroke-width='3'/%3E%3Ctext x='50' y='62' font-family='sans-serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";
+const STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23e74c3c' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23e74c3c' stroke-width='1.5'/%3E%3Ctext x='50' y='53' font-family='sans-serif' font-size='14' font-weight='bold' fill='%23e74c3c' text-anchor='middle' transform='rotate(-15, 50, 53)'%3EComplete!!%3C/text%3E%3C/svg%3E";
 
 // スタンプポイントのデータ（クイズ情報を含む）
 const defaultStampPoints = [
