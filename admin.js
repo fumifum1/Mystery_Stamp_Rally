@@ -356,10 +356,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="hint-image-section-${index}" class="hint-section-container" style="${point.useHintImage ? '' : 'display: none;'}">
                 <div class="admin-form-group vertical-group">
                     <label>ヒント画像URL</label>
-                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}">
+                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}" data-error="hint-error-${index}">
                     <p class="input-hint">※Googleドライブ, Gyazo等の「直リンク」に対応</p>
                     <div class="url-preview-container" style="margin-top: 10px; text-align: center;">
-                        <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="this.style.display='none'">
+                        <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" referrerpolicy="no-referrer" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="window.handlePreviewError(this)">
+                        <div id="hint-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが正しいか、公開設定になっているか確認してください。</div>
                     </div>
                 </div>
             </div>`;
@@ -374,8 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="achievement-section-${index}" class="hint-section-container" style="${point.useCustomStampedImage ? '' : 'display: none;'}">
                 <div class="admin-form-group vertical-group">
                     <label>達成画像URL</label>
-                    <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageSrc || ''}" placeholder="https://..." class="url-input stamped-url" data-preview="image-preview-${index}">
+                    <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageSrc || ''}" placeholder="https://..." class="url-input stamped-url" data-preview="image-preview-${index}" data-error="stamped-error-${index}">
                     <p class="input-hint">※Googleドライブ, Gyazo等の「直リンク」に対応</p>
+                    <div id="stamped-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。</div>
                 </div>
             </div>`;
     }
@@ -385,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="admin-media-container" style="${point.qrRequired === false ? 'opacity: 0.6;' : ''}">
                 <div class="media-item">
                     <p>達成時画像プレビュー</p>
-                    <img id="image-preview-${index}" src="${point.stampedImageSrc || ADMIN_DEFAULT_STAMP_IMG}" alt="Preview" class="stamp-icon">
+                    <img id="image-preview-${index}" src="${point.stampedImageSrc || ADMIN_DEFAULT_STAMP_IMG}" alt="Preview" class="stamp-icon" referrerpolicy="no-referrer" onerror="window.handlePreviewError(this)">
                 </div>
                 <div class="media-item" style="${point.qrRequired === false ? 'display: none;' : ''}">
                     <p>現地設置用QRコード</p>
@@ -487,9 +489,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (converted !== target.value) target.value = converted;
             
             const previewId = target.dataset.preview;
+            const errorId = target.dataset.error;
             if (previewId) {
                 const preview = document.getElementById(previewId);
+                const errorEl = document.getElementById(errorId);
                 if (preview) {
+                    if (errorEl) errorEl.style.display = 'none';
                     preview.src = target.value || (target.classList.contains('stamped-url') ? ADMIN_DEFAULT_STAMP_IMG : '');
                     preview.style.display = target.value || target.classList.contains('stamped-url') ? 'inline-block' : 'none';
                 }
@@ -597,6 +602,17 @@ document.addEventListener('DOMContentLoaded', () => {
     shareModalCloseBtn.addEventListener('click', () => {
         shareModal.classList.remove('show');
     });
+
+    // Helper for image errors
+    window.handlePreviewError = function(img) {
+        img.style.display = 'none';
+        const inputId = img.id.includes('hint') ? img.id.replace('hint-image-preview-', 'hint-image-url-') : img.id.replace('image-preview-', 'stamped-image-url-');
+        const input = document.getElementById(inputId);
+        if (input && input.dataset.error) {
+            const errorEl = document.getElementById(input.dataset.error);
+            if (errorEl && input.value) errorEl.style.display = 'block';
+        }
+    };
 
     // Initialization
     function init() {

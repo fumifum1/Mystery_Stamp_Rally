@@ -63,7 +63,7 @@ function createStampCards() {
                     ${point.hint ? `<p class="hint-text">${point.hint}</p>` : ''}
                     ${point.hintImageSrc ? `
                         <div class="hint-image-wrapper">
-                            <img src="${point.hintImageSrc}" alt="Hint" class="hint-image" 
+                            <img src="${point.hintImageSrc}" alt="Hint" class="hint-image" referrerpolicy="no-referrer" 
                                  onerror="this.parentElement.style.display='none'; console.warn('Hint img load fail');">
                         </div>` : ''}
                 </div>
@@ -92,6 +92,7 @@ function updateAllUI() {
         if (stampedImageData) {
             card.classList.add('stamped');
             stampIcon.src = stampedImageData === 'default_stamped' ? STAMPED_IMG : stampedImageData;
+            stampIcon.setAttribute('referrerpolicy', 'no-referrer');
             stampIcon.onerror = () => { stampIcon.src = STAMPED_IMG; };
             stampBtn.disabled = true;
             stampBtn.textContent = 'スタンプ済み';
