@@ -364,6 +364,14 @@ footer a:hover {
     margin: 15px 0;
 }
 
+.hint-label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-bottom: -5px;
+    text-align: left;
+}
+
 .hint-text {
     width: 100%;
     box-sizing: border-box;

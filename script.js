@@ -4,7 +4,7 @@
  */
 
 // === 1. Constants & Assets ===
-const NOT_STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2334495e' stroke='%237f8c8d' stroke-width='3'/%3E%3Ctext x='50' y='58' font-family='sans-serif' font-size='36' font-weight='bold' fill='%237f8c8d' text-anchor='middle'%3E%3F%3C/text%3E%3C/svg%3E";
+const NOT_STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2334495e' stroke='%237f8c8d' stroke-width='3'/%3E%3Ctext x='50' y='55' font-family='sans-serif' font-size='14' font-weight='bold' fill='%237f8c8d' text-anchor='middle'%3ENOT%20STAMP!!%3C/text%3E%3C/svg%3E";
 const STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23e74c3c' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23e74c3c' stroke-width='1.5'/%3E%3Ctext x='50' y='53' font-family='sans-serif' font-size='14' font-weight='bold' fill='%23e74c3c' text-anchor='middle' transform='rotate(-15, 50, 53)'%3EComplete!!%3C/text%3E%3C/svg%3E";
 
 const STAMP_THRESHOLD_METERS = 20;
@@ -60,11 +60,12 @@ function createStampCards() {
                     <img src="${NOT_STAMPED_IMG}" alt="Stamp" class="stamp-icon">
                 </div>
                 <div class="hint-container">
-                    ${point.hint ? `<p class="hint-text">${point.hint}</p>` : ''}
+                    ${point.hint ? `<p class="hint-label">【ヒント】</p><p class="hint-text">${point.hint}</p>` : ''}
                     ${point.hintImageSrc ? `
+                        <p class="hint-label">【ヒント画像】</p>
                         <div class="hint-image-wrapper">
                             <img src="${point.hintImageSrc}" alt="Hint" class="hint-image" referrerpolicy="no-referrer" 
-                                 onerror="this.parentElement.style.display='none'; console.warn('Hint img load fail');">
+                                 onerror="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='none'; console.warn('Hint img load fail');">
                         </div>` : ''}
                 </div>
                 <p class="distance-info" id="distance-${point.id}">距離: ---</p>
