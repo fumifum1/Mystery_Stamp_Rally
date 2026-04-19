@@ -77,8 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchQuery = converted.match(/[?&]id=([^\/&]+)/);
             const fileId = matchPath ? matchPath[1] : (matchQuery ? matchQuery[1] : null);
             if (fileId) {
-                // /uc?export=view is the most reliable direct image URL for Google Drive
-                return `https://drive.google.com/uc?export=view&id=${fileId}`;
+                // thumbnail endpoint is more reliable than uc?export=view for direct img embedding
+                // Requires file to be shared as "Anyone with the link can view"
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
             }
         }
 
