@@ -56,10 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Google Drive
         if (converted.includes('drive.google.com')) {
-            // Match /file/d/ID or ?id=ID
-            const match = converted.match(/\/file\/d\/([^\/\?]+)/) || converted.match(/[?&]id=([^\/\&]+)/);
-            if (match && match[1]) {
-                return `https://lh3.googleusercontent.com/d/${match[1]}=w1000`;
+            // Match /file/d/ID/... or ?id=ID
+            const matchPath = converted.match(/\/file\/d\/([^\/\?]+)/);
+            const matchQuery = converted.match(/[?&]id=([^\/&]+)/);
+            const fileId = matchPath ? matchPath[1] : (matchQuery ? matchQuery[1] : null);
+            if (fileId) {
+                // /uc?export=view is the most reliable direct image URL for Google Drive
+                return `https://drive.google.com/uc?export=view&id=${fileId}`;
             }
         }
 
@@ -305,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="admin-form-group vertical-group">
                 <label>座標の設定</label>
                 <div class="coord-selector-wrapper">
-                    <select class="method-select" data-index="${index}">
+                    <select class="method-select" data-index="${index}" style="width:100%; padding:10px; background-color:var(--input-bg); color:var(--input-text); border-radius:4px; border:1px solid var(--border-color); font-size:1rem; -webkit-appearance:none; appearance:none;">
                         <option value="current" ${point.coordMethod === 'current' ? 'selected' : ''}>① 現在地から</option>
                         <option value="map" ${point.coordMethod === 'map' ? 'selected' : ''}>② 地図から取得</option>
                         <option value="manual" ${point.coordMethod === 'manual' ? 'selected' : ''}>③ 手動入力</option>
