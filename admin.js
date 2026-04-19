@@ -45,15 +45,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === 3. Utility Functions ===
 
+    // Sentinel value returned when a URL is detected as unsupported
+    const UNSUPPORTED_URL = '__unsupported__';
+
     /**
      * Converts common shared URLs (Google Drive, Dropbox, Gyazo) to direct image links.
+     * Returns UNSUPPORTED_URL if the link type is known to be incompatible.
      * @param {string} url - The URL to convert.
-     * @returns {string} The converted direct image link.
+     * @returns {string} The converted direct image link, or UNSUPPORTED_URL.
      */
     function convertImageDirectLink(url) {
         if (!url) return url;
         let converted = url.trim();
 
+        // === NOT SUPPORTED ===
+        // Google Photos shared links (photos.app.goo.gl, photos.google.com)
+        // These are HTML pages, NOT direct image URLs. Cannot be embedded in <img>.
+        if (converted.includes('photos.app.goo.gl') || converted.includes('photos.google.com')) {
+            return UNSUPPORTED_URL;
+        }
+        // Other known unsupported services
+        if (converted.includes('instagram.com') || converted.includes('twitter.com') || converted.includes('x.com')) {
+            return UNSUPPORTED_URL;
+        }
+
+        // === SUPPORTED ===
         // Google Drive
         if (converted.includes('drive.google.com')) {
             // Match /file/d/ID/... or ?id=ID
@@ -360,10 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group vertical-group">
                     <label>ヒント画像URL</label>
                     <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}" data-error="hint-error-${index}">
-                    <p class="input-hint">※Googleドライブ, Gyazo等の「直リンク」に対応</p>
+                    <p class="input-hint">✅ 対応: Gyazo, Googleドライブ, Dropbox, 「.jpg/.png」で終わる直リンク<br>❌ 非対応: Googleフォト, Instagram, Twitter/X (画像ページへのリンクは不可)</p>
                     <div class="url-preview-container" style="margin-top: 10px; text-align: center;">
                         <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" referrerpolicy="no-referrer" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="window.handlePreviewError(this)">
-                        <div id="hint-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが正しいか、公開設定になっているか確認してください。</div>
+                        <div id="hint-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが画像ファイル(直リンク)でない可能性があります。</div>
                     </div>
                 </div>
             </div>`;
@@ -379,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="admin-form-group vertical-group">
                     <label>達成画像URL</label>
                     <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageSrc || ''}" placeholder="https://..." class="url-input stamped-url" data-preview="image-preview-${index}" data-error="stamped-error-${index}">
-                    <p class="input-hint">※Googleドライブ, Gyazo等の「直リンク」に対応</p>
-                    <div id="stamped-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。</div>
+                    <p class="input-hint">✅ 対応: Gyazo, Googleドライブ, Dropbox, 「.jpg/.png」で終わる直リンク<br>❌ 非対応: Googleフォト, Instagram, Twitter/X</p>
+                    <div id="stamped-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが画像ファイル(直リンク)でない可能性があります。</div>
                 </div>
             </div>`;
     }
@@ -488,14 +504,33 @@ document.addEventListener('DOMContentLoaded', () => {
     container.addEventListener('input', (e) => {
         const target = e.target;
         if (target.classList.contains('url-input')) {
-            const converted = convertImageDirectLink(target.value);
-            if (converted !== target.value) target.value = converted;
-            
+            const rawValue = target.value;
+            const converted = convertImageDirectLink(rawValue);
+
             const previewId = target.dataset.preview;
             const errorId = target.dataset.error;
+            const errorEl = errorId ? document.getElementById(errorId) : null;
+
+            // Detected as an unsupported link type (e.g., Google Photos)
+            if (converted === UNSUPPORTED_URL) {
+                if (errorEl) {
+                    errorEl.textContent = '❌ このURLは図像直リンクに対応していません。Googleフォトは画像ページへのリンクのため使用不可です。代わりにGyazoやGoogleドライブをお使いください。';
+                    errorEl.style.display = 'block';
+                }
+                if (previewId) {
+                    const preview = document.getElementById(previewId);
+                    if (preview) preview.style.display = 'none';
+                }
+                syncDataFromUI();
+                updateDataSizeIndicator();
+                return;
+            }
+
+            // Apply conversion (e.g., Google Drive -> uc?export=view)
+            if (converted !== rawValue) target.value = converted;
+
             if (previewId) {
                 const preview = document.getElementById(previewId);
-                const errorEl = document.getElementById(errorId);
                 if (preview) {
                     if (errorEl) errorEl.style.display = 'none';
                     preview.src = target.value || (target.classList.contains('stamped-url') ? ADMIN_DEFAULT_STAMP_IMG : '');
