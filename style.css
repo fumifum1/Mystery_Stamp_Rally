@@ -273,19 +273,28 @@ footer a:hover {
 /* Checkboxes */
 .checkbox-group {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center;
     gap: 10px;
     margin-top: 10px;
+    flex-wrap: nowrap;
 }
 
 .checkbox-group input[type="checkbox"] {
     width: 20px !important;
     height: 20px !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
     margin: 0;
     cursor: pointer;
 }
 
-.checkbox-group label { width: auto !important; }
+.checkbox-group label { 
+    width: auto !important;
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-weight: normal;
+}
 
 /* Admin Delete Buttons */
 .delete-btn {
@@ -519,7 +528,11 @@ footer a:hover {
 
 #modal-map-container { width: 100%; height: 60vh; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--accent-hover); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
-.coord-selector-wrapper { margin-top: 10px; }
+.coord-selector-wrapper { margin-top: 10px; width: 100%; }
+.coord-selector-wrapper select {
+    width: 100% !important;
+    box-sizing: border-box;
+}
 .coord-section {
     margin-top: 12px; padding: 15px;
     background-color: rgba(255, 255, 255, 0.05);
