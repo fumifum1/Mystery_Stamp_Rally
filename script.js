@@ -205,9 +205,23 @@ async function loadConfig() {
     }
 
     if (config) {
-        state.rallyConfig = config;
-        state.stampPoints = config.points || [];
-        if (config.title) document.title = dom.titleElement.textContent = config.title;
+        state.rallyConfig = {
+            title: config.t || config.title || "Mystery Stamp Rally",
+            completionMessage: config.c || config.completionMessage || "おめでとうございます！すべてのポイントを制覇しました！"
+        };
+        const rawPoints = config.p || config.points || [];
+        state.stampPoints = rawPoints.map((pt, idx) => ({
+            id: pt.id || pt.i || `pt_${idx}`,
+            name: pt.name || pt.n || `ポイント ${idx + 1}`,
+            latitude: pt.latitude !== undefined ? pt.latitude : pt.la,
+            longitude: pt.longitude !== undefined ? pt.longitude : pt.lo,
+            stampedImageSrc: pt.stampedImageSrc || pt.s || 'default_stamped',
+            hint: pt.hint || pt.h || '',
+            hintImageSrc: pt.hintImageSrc || pt.hi || '',
+            qrRequired: pt.qrRequired !== undefined ? pt.qrRequired : (pt.q !== 0),
+            acquisitionButtonLabel: pt.acquisitionButtonLabel || ((pt.qrRequired !== undefined ? pt.qrRequired : (pt.q !== 0)) ? 'QRコードをスキャン' : 'スタンプゲット！')
+        }));
+        if (state.rallyConfig.title) document.title = dom.titleElement.textContent = state.rallyConfig.title;
     }
 }
 

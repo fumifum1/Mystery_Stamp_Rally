@@ -142,23 +142,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const rallyTitle = rallyTitleInput.value || '';
             const completionMessage = completionMessageInput.value || '';
             
-            const tempData = {
-                title: rallyTitle,
-                completionMessage: completionMessage,
-                points: currentStampPoints.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    latitude: p.latitude,
-                    longitude: p.longitude,
-                    stampedImageSrc: p.useCustomStampedImage ? (p.stampedImageSrc || 'default_stamped') : 'default_stamped',
-                    hint: p.useHint ? p.hint : '',
-                    hintImageSrc: p.useHintImage ? p.hintImageSrc : ''
-                }))
-            };
+            const tempData = {};
+            if (rallyTitle && rallyTitle !== 'Mystery Stamp Rally') tempData.t = rallyTitle;
+            if (completionMessage && completionMessage !== 'おめでとうございます！すべてのポイントを制覇しました！') tempData.c = completionMessage;
+            
+            tempData.p = currentStampPoints.map((p, i) => {
+                const pt = { i: p.id, la: p.latitude, lo: p.longitude };
+                if (p.name && p.name !== '新規ポイント' && p.name !== 'スタート地点' && p.name !== `ポイント ${i + 1}`) pt.n = p.name;
+                if (p.useCustomStampedImage && p.stampedImageSrc) pt.s = p.stampedImageSrc;
+                if (p.useHint && p.hint) pt.h = p.hint;
+                if (p.useHintImage && p.hintImageSrc) pt.hi = p.hintImageSrc;
+                if (p.qrRequired === false) pt.q = 0;
+                return pt;
+            });
 
             const size = JSON.stringify(tempData).length;
             const sizeKB = (size / 1024).toFixed(1);
-            display.textContent = `データ量目安: ${sizeKB}KB`;
+            display.textContent = `データ量目安(圧縮前): ${sizeKB}KB`;
 
             if (size > MAX_TOTAL_JSON_SIZE) {
                 display.style.color = '#e74c3c';
@@ -216,21 +216,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const rallyTitle = rallyTitleInput.value || 'Mystery Stamp Rally';
             const completionMessage = completionMessageInput.value || 'クリアおめでとうございます！';
 
-            const rallyData = {
-                title: rallyTitle,
-                completionMessage: completionMessage,
-                points: currentStampPoints.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    latitude: p.latitude,
-                    longitude: p.longitude,
-                    stampedImageSrc: p.useCustomStampedImage ? p.stampedImageSrc : 'default_stamped',
-                    hint: p.useHint ? p.hint : '',
-                    hintImageSrc: p.useHintImage ? p.hintImageSrc : '',
-                    qrRequired: p.qrRequired,
-                    acquisitionButtonLabel: p.acquisitionButtonLabel
-                }))
-            };
+            const rallyData = {};
+            if (rallyTitle && rallyTitle !== 'Mystery Stamp Rally') rallyData.t = rallyTitle;
+            if (completionMessage && completionMessage !== 'おめでとうございます！すべてのポイントを制覇しました！' && completionMessage !== 'クリアおめでとうございます！') rallyData.c = completionMessage;
+            
+            rallyData.p = currentStampPoints.map((p, i) => {
+                const pt = { i: p.id, la: p.latitude, lo: p.longitude };
+                if (p.name && p.name !== '新規ポイント' && p.name !== 'スタート地点' && p.name !== `ポイント ${i + 1}`) pt.n = p.name;
+                if (p.useCustomStampedImage && p.stampedImageSrc) pt.s = p.stampedImageSrc;
+                if (p.useHint && p.hint) pt.h = p.hint;
+                if (p.useHintImage && p.hintImageSrc) pt.hi = p.hintImageSrc;
+                if (p.qrRequired === false) pt.q = 0;
+                return pt;
+            });
 
             const jsonString = JSON.stringify(rallyData);
             const baseUrl = window.location.href.split('admin.html')[0] + 'mspr.html';
