@@ -42,7 +42,11 @@
             <div class="button-container">
                 <button id="add-point-button" class="btn btn-secondary">スタンプポイントを追加</button>
             </div>
-            <div class="button-container" style="margin-top: 20px;">
+            <div class="admin-form-group checkbox-group" style="margin-top: 20px; display: flex; justify-content: center; align-items: center;">
+                <input type="checkbox" id="use-url-shortener" checked>
+                <label for="use-url-shortener" style="cursor: pointer;">URLを短縮してQRコードをシンプルにする (推奨)</label>
+            </div>
+            <div class="button-container" style="margin-top: 15px;">
                 <button id="save-button" class="btn btn-primary">共有URLを生成</button>
                 <div id="data-size-display" style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">データ量目安: 0KB</div>
                 <button id="preview-button" class="btn btn-link" style="margin-top: 10px;">現在の設定でプレビュー</button>

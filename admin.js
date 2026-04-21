@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewButton = document.getElementById('preview-button');
     const rallyTitleInput = document.getElementById('rally-title');
     const completionMessageInput = document.getElementById('completion-message');
+    const useUrlShortenerCheckbox = document.getElementById('use-url-shortener');
 
     // Modal References
     const shareModal = document.getElementById('share-modal');
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (completionMessage && completionMessage !== 'おめでとうございます！すべてのポイントを制覇しました！' && completionMessage !== 'クリアおめでとうございます！') rallyData.c = completionMessage;
             
             rallyData.p = currentStampPoints.map((p, i) => {
-                const pt = { i: p.id, la: p.latitude, lo: p.longitude };
+                const pt = { i: p.id, la: parseFloat(p.latitude.toFixed(5)), lo: parseFloat(p.longitude.toFixed(5)) };
                 if (p.name && p.name !== '新規ポイント' && p.name !== 'スタート地点' && p.name !== `ポイント ${i + 1}`) pt.n = p.name;
                 if (p.useCustomStampedImage && p.stampedImageSrc) pt.s = p.stampedImageSrc;
                 if (p.useHint && p.hint) pt.h = p.hint;
@@ -243,6 +244,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (fullUrl.length > 5000) {
                     alert('【注意】データが非常に多いため、URLが長くなっています。一部のアプリでは正常に開けない可能性があります。');
+                }
+
+                // is.gd で短縮URLを生成する
+                if (useUrlShortenerCheckbox && useUrlShortenerCheckbox.checked) {
+                    saveButton.textContent = 'URL短縮中...';
+                    try {
+                        const response = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(fullUrl)}`);
+                        if (response.ok) {
+                            const shortUrl = await response.text();
+                            if (shortUrl && shortUrl.startsWith('http')) {
+                                fullUrl = shortUrl;
+                            }
+                        } else {
+                            console.warn('URL Shortening failed with status:', response.status);
+                            // 失敗時は元の長いURLを変えずに続行（フォールバック）
+                        }
+                    } catch (fetchErr) {
+                        console.warn('URL Shortening network error:', fetchErr);
+                        // 失敗時は元の長いURLを変えずに続行
+                    }
                 }
             } catch (pakoError) {
                 console.error('Compression failed:', pakoError);
@@ -545,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addButton.addEventListener('click', () => {
         syncDataFromUI();
         currentStampPoints.push({
-            id: 'point_' + Date.now(),
+            id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
             name: '新規ポイント',
             latitude: 35.681236,
             longitude: 139.767125,
@@ -656,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rallyTitleInput.value = 'Mystery Stamp Rally';
         completionMessageInput.value = 'おめでとうございます！すべてのポイントを制覇しました！';
         currentStampPoints = [{
-            id: 'point_' + Date.now(),
+            id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
             name: 'スタート地点',
             latitude: 35.681236, longitude: 139.767125,
             stampedImageSrc: '', hint: '', hintImageSrc: '',
