@@ -250,11 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (useUrlShortenerCheckbox && useUrlShortenerCheckbox.checked) {
                     saveButton.textContent = 'URL短縮中...';
                     try {
-                        const response = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(fullUrl)}`);
+                        const targetApiUrl = `https://is.gd/create.php?format=simple&url=${encodeURIComponent(fullUrl)}`;
+                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetApiUrl)}`;
+                        const response = await fetch(proxyUrl);
                         if (response.ok) {
-                            const shortUrl = await response.text();
-                            if (shortUrl && shortUrl.startsWith('http')) {
-                                fullUrl = shortUrl;
+                            const data = await response.json();
+                            if (data.contents && data.contents.startsWith('http')) {
+                                fullUrl = data.contents.trim();
                             }
                         } else {
                             console.warn('URL Shortening failed with status:', response.status);
