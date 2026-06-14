@@ -35,6 +35,11 @@
                 <label for="completion-message">コンプリート時メッセージ:</label>
                 <textarea id="completion-message" placeholder="すべてのスタンプを集めた参加者へのメッセージを入力します。"></textarea>
             </div>
+            <div class="admin-form-group vertical-group">
+                <label for="detection-radius">判定範囲 (メートル):</label>
+                <input type="number" id="detection-radius" value="50" min="10" max="500" step="10">
+                <p style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">指定した距離以内に近づくとスタンプが取得可能になります。GPSの誤差を考慮し、30〜50m程度を推奨します。</p>
+            </div>
             <hr style="border-color: #7f8c8d; margin: 20px 0;">
             <div id="admin-stamp-points-container">
                 <!-- JavaScriptでフォームを生成 -->
@@ -75,8 +80,29 @@
         </div>
     </div>
 
+    <!-- 使い方ガイドモーダル -->
+    <div id="tutorial-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="tutorial-modal-close-btn" class="modal-close-btn">&times;</button>
+            <h2 class="modal-title">使い方ガイド</h2>
+            <div class="welcome-modal-body" style="text-align: left;">
+                <ol>
+                    <li><strong>基本設定:</strong> ラリーのタイトルと完了メッセージを入力します。</li>
+                    <li><strong>判定範囲:</strong> プレイヤーがどのくらい近づけばスタンプを押せるか設定します（30〜50m推奨）。</li>
+                    <li><strong>ポイント追加:</strong> 「スタンプポイントを追加」で場所を増やせます。</li>
+                    <li><strong>座標設定:</strong> 「現在地」「地図」「手動入力」から場所を選べます。</li>
+                    <li><strong>URL生成:</strong> 最後に「共有URLを生成」を押し、表示されたQRコードを配布してください。</li>
+                </ol>
+                <p style="font-size: 0.85rem; background: #f8f9fa; padding: 10px; border-left: 4px solid #3498db;">
+                    ※ヒントに画像URLを使う場合、GyazoやGoogleドライブの共有URLを貼り付けると自動で直リンクに変換されます。
+                </p>
+            </div>
+            <button id="tutorial-modal-ok-btn" class="btn btn-primary">閉じる</button>
+        </div>
+    </div>
+
     <footer>
-        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.8.9
+        &copy; 2025 <a href="https://fumifum1.github.io/main/index.html">Synapse Creations.</a> Sep.Stamprally_ver4.8.10
     </footer>
 
     <!-- 共有URL表示用モーダル -->

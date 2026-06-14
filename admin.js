@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.getElementById('add-point-button');
     const previewButton = document.getElementById('preview-button');
     const rallyTitleInput = document.getElementById('rally-title');
+    const detectionRadiusInput = document.getElementById('detection-radius');
     const completionMessageInput = document.getElementById('completion-message');
     const useUrlShortenerCheckbox = document.getElementById('use-url-shortener');
 
@@ -39,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const showWelcomeModalBtn = document.getElementById('show-welcome-modal-btn');
     const welcomeModalCloseBtn = document.getElementById('welcome-modal-close-btn');
     const startTutorialBtn = document.getElementById('start-tutorial-btn');
+    
+    const tutorialModal = document.getElementById('tutorial-modal');
+    const tutorialModalCloseBtn = document.getElementById('tutorial-modal-close-btn');
+    const tutorialModalOkBtn = document.getElementById('tutorial-modal-ok-btn');
 
     const mapModal = document.getElementById('map-modal');
     const mapModalConfirmBtn = document.getElementById('map-modal-confirm-btn');
@@ -142,9 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const rallyTitle = rallyTitleInput.value || '';
             const completionMessage = completionMessageInput.value || '';
+            const detectionRadius = parseInt(detectionRadiusInput.value) || 50;
             
             const tempData = {};
             if (rallyTitle && rallyTitle !== 'Mystery Stamp Rally') tempData.t = rallyTitle;
+            tempData.r = detectionRadius;
             if (completionMessage && completionMessage !== 'おめでとうございます！すべてのポイントを制覇しました！') tempData.c = completionMessage;
             
             tempData.p = currentStampPoints.map((p, i) => {
@@ -197,8 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
             point.useCustomStampedImage = document.getElementById(`use-custom-stamped-image-${index}`)?.checked ?? false;
 
             // Image URLs
-            point.hintImageSrc = document.getElementById(`hint-image-url-${index}`)?.value || '';
-            point.stampedImageSrc = document.getElementById(`stamped-image-url-${index}`)?.value || '';
+            const hintMethod = point.hintImageMethod || 'url';
+            if (hintMethod === 'url') {
+                point.hintImageSrc = document.getElementById(`hint-image-url-${index}`)?.value || '';
+            }
+            const stampedMethod = point.stampedImageMethod || 'url';
+            if (stampedMethod === 'url') {
+                point.stampedImageSrc = document.getElementById(`stamped-image-url-${index}`)?.value || '';
+            }
 
             // Implicit values
             point.acquisitionButtonLabel = point.qrRequired ? 'スタンプをゲット！' : 'スタンプゲット！';
@@ -216,10 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const rallyTitle = rallyTitleInput.value || 'Mystery Stamp Rally';
             const completionMessage = completionMessageInput.value || 'クリアおめでとうございます！';
+            const detectionRadius = parseInt(detectionRadiusInput.value) || 50;
 
             const rallyData = {};
             if (rallyTitle && rallyTitle !== 'Mystery Stamp Rally') rallyData.t = rallyTitle;
             if (completionMessage && completionMessage !== 'おめでとうございます！すべてのポイントを制覇しました！' && completionMessage !== 'クリアおめでとうございます！') rallyData.c = completionMessage;
+            rallyData.r = detectionRadius;
             
             rallyData.p = currentStampPoints.map((p, i) => {
                 const pt = { i: p.id, la: parseFloat(p.latitude.toFixed(5)), lo: parseFloat(p.longitude.toFixed(5)) };
@@ -392,17 +407,29 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="admin-form-group checkbox-group">
                 <input type="checkbox" id="use-hint-image-${index}" ${point.useHintImage ? 'checked' : ''} class="toggle-trigger" data-target="hint-image-section-${index}">
-                <label for="use-hint-image-${index}">ヒント画像(URL)を入れる</label>
+                <label for="use-hint-image-${index}">ヒント画像を入れる</label>
             </div>
             <div id="hint-image-section-${index}" class="hint-section-container" style="${point.useHintImage ? '' : 'display: none;'}">
-                <div class="admin-form-group vertical-group">
+                 <div class="admin-form-group vertical-group">
+                    <label>画像の取得方法</label>
+                    <select class="image-method-select" data-index="${index}" data-type="hint" style="width:100%; padding:8px; background-color:var(--input-bg); color:var(--input-text); border-radius:4px; border:1px solid var(--border-color); font-size:0.95rem;">
+                        <option value="url" ${point.hintImageMethod === 'url' || !point.hintImageMethod ? 'selected' : ''}>外部URLから取り込む</option>
+                        <option value="file" ${point.hintImageMethod === 'file' ? 'selected' : ''}>端末から画像を選択する</option>
+                    </select>
+                </div>
+                <div class="admin-form-group vertical-group hint-url-group-${index}" style="${point.hintImageMethod === 'file' ? 'display: none;' : ''}">
                     <label>ヒント画像URL</label>
-                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageSrc || ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}" data-error="hint-error-${index}">
+                    <input type="text" id="hint-image-url-${index}" value="${point.hintImageMethod !== 'file' ? (point.hintImageSrc || '') : ''}" placeholder="https://..." class="url-input hint-url" data-preview="hint-image-preview-${index}" data-error="hint-error-${index}">
                     <p class="input-hint">✅ 対応: Gyazo, Googleドライブ, Dropbox, 「.jpg/.png」で終わる直リンク<br>❌ 非対応: Googleフォト, Instagram, Twitter/X (画像ページへのリンクは不可)</p>
-                    <div class="url-preview-container" style="margin-top: 10px; text-align: center;">
-                        <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" referrerpolicy="no-referrer" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="window.handlePreviewError(this)">
-                        <div id="hint-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが画像ファイル(直リンク)でない可能性があります。</div>
-                    </div>
+                </div>
+                <div class="admin-form-group vertical-group hint-file-group-${index}" style="${point.hintImageMethod === 'file' ? '' : 'display: none;'}">
+                    <label>ヒント画像ファイル</label>
+                    <input type="file" id="hint-image-file-${index}" accept="image/*" class="file-input" data-index="${index}" data-type="hint" data-preview="hint-image-preview-${index}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <p class="input-hint">※画像は自動的に圧縮されます。</p>
+                </div>
+                <div class="url-preview-container" style="margin-top: 10px; text-align: center;">
+                    <img id="hint-image-preview-${index}" src="${point.hintImageSrc || ''}" alt="Hint Preview" class="hint-image" referrerpolicy="no-referrer" style="max-height: 150px; ${point.hintImageSrc ? '' : 'display: none;'}" onerror="window.handlePreviewError(this)">
+                    <div id="hint-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。</div>
                 </div>
             </div>`;
     }
@@ -414,12 +441,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label for="use-custom-stamped-image-${index}">独自の達成画像を使用する</label>
             </div>
             <div id="achievement-section-${index}" class="hint-section-container" style="${point.useCustomStampedImage ? '' : 'display: none;'}">
-                <div class="admin-form-group vertical-group">
-                    <label>達成画像URL</label>
-                    <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageSrc || ''}" placeholder="https://..." class="url-input stamped-url" data-preview="image-preview-${index}" data-error="stamped-error-${index}">
-                    <p class="input-hint">✅ 対応: Gyazo, Googleドライブ, Dropbox, 「.jpg/.png」で終わる直リンク<br>❌ 非対応: Googleフォト, Instagram, Twitter/X</p>
-                    <div id="stamped-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。URLが画像ファイル(直リンク)でない可能性があります。</div>
+                 <div class="admin-form-group vertical-group">
+                    <label>画像の取得方法</label>
+                    <select class="image-method-select" data-index="${index}" data-type="stamped" style="width:100%; padding:8px; background-color:var(--input-bg); color:var(--input-text); border-radius:4px; border:1px solid var(--border-color); font-size:0.95rem;">
+                        <option value="url" ${point.stampedImageMethod === 'url' || !point.stampedImageMethod ? 'selected' : ''}>外部URLから取り込む</option>
+                        <option value="file" ${point.stampedImageMethod === 'file' ? 'selected' : ''}>端末から画像を選択する</option>
+                    </select>
                 </div>
+                <div class="admin-form-group vertical-group stamped-url-group-${index}" style="${point.stampedImageMethod === 'file' ? 'display: none;' : ''}">
+                    <label>達成画像URL</label>
+                    <input type="text" id="stamped-image-url-${index}" value="${point.stampedImageMethod !== 'file' ? (point.stampedImageSrc || '') : ''}" placeholder="https://..." class="url-input stamped-url" data-preview="image-preview-${index}" data-error="stamped-error-${index}">
+                    <p class="input-hint">✅ 対応: Gyazo, Googleドライブ, Dropbox, 「.jpg/.png」で終わる直リンク<br>❌ 非対応: Googleフォト, Instagram, Twitter/X</p>
+                </div>
+                <div class="admin-form-group vertical-group stamped-file-group-${index}" style="${point.stampedImageMethod === 'file' ? '' : 'display: none;'}">
+                    <label>達成画像ファイル</label>
+                    <input type="file" id="stamped-image-file-${index}" accept="image/*" class="file-input" data-index="${index}" data-type="stamped" data-preview="image-preview-${index}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <p class="input-hint">※画像は自動的に圧縮されます。</p>
+                </div>
+                <div id="stamped-error-${index}" class="preview-error-message">画像の読み込みに失敗しました。</div>
             </div>`;
     }
 
@@ -512,6 +551,62 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.classList.contains('method-select')) {
             currentStampPoints[index].coordMethod = target.value;
             renderUI();
+        } else if (target.classList.contains('image-method-select')) {
+            const type = target.dataset.type;
+            if (type === 'hint') {
+                currentStampPoints[index].hintImageMethod = target.value;
+            } else {
+                currentStampPoints[index].stampedImageMethod = target.value;
+            }
+            renderUI();
+        } else if (target.classList.contains('file-input')) {
+            const file = target.files[0];
+            if (!file) return;
+            const type = target.dataset.type;
+            const previewId = target.dataset.preview;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600; // max resolution
+                    const MAX_HEIGHT = 600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG with 0.6 quality to reduce URL size
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                    if (type === 'hint') {
+                        currentStampPoints[index].hintImageSrc = dataUrl;
+                    } else {
+                        currentStampPoints[index].stampedImageSrc = dataUrl;
+                    }
+                    
+                    if (previewId) {
+                        const preview = document.getElementById(previewId);
+                        if (preview) {
+                            preview.src = dataUrl;
+                            preview.style.display = 'inline-block';
+                        }
+                    }
+                    syncDataFromUI();
+                    updateDataSizeIndicator();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
         } else if (target.classList.contains('toggle-trigger')) {
             const section = document.getElementById(target.dataset.target);
             if (section) section.style.display = target.checked ? 'block' : 'none';
@@ -579,7 +674,9 @@ document.addEventListener('DOMContentLoaded', () => {
             useHintImage: false,
             useCustomStampedImage: false,
             qrRequired: true,
-            coordMethod: 'current'
+            coordMethod: 'current',
+            hintImageMethod: 'url',
+            stampedImageMethod: 'url'
         });
         renderUI();
     });
@@ -684,13 +781,22 @@ document.addEventListener('DOMContentLoaded', () => {
             latitude: 35.681236, longitude: 139.767125,
             stampedImageSrc: '', hint: '', hintImageSrc: '',
             useHint: false, useHintImage: false, useCustomStampedImage: false,
-            qrRequired: true, coordMethod: 'current'
+            qrRequired: true, coordMethod: 'current',
+            hintImageMethod: 'url', stampedImageMethod: 'url'
         }];
         
         if (!localStorage.getItem('hasVisitedAdmin')) welcomeModal.classList.add('show');
         welcomeModalCloseBtn.addEventListener('click', () => {
             welcomeModal.classList.remove('show');
             localStorage.setItem('hasVisitedAdmin', 'true');
+        });
+
+        // Tutorial and Welcome links
+        showWelcomeModalBtn.addEventListener('click', () => welcomeModal.classList.add('show'));
+        startTutorialBtn.addEventListener('click', () => tutorialModal.classList.add('show'));
+        
+        [tutorialModalCloseBtn, tutorialModalOkBtn].forEach(btn => {
+            btn.addEventListener('click', () => tutorialModal.classList.remove('show'));
         });
         
         renderUI();

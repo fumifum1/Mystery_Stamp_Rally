@@ -7,7 +7,7 @@
 const NOT_STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2334495e' stroke='%237f8c8d' stroke-width='3'/%3E%3Ctext x='50' y='55' font-family='sans-serif' font-size='14' font-weight='bold' fill='%237f8c8d' text-anchor='middle'%3ENOT%20STAMP!!%3C/text%3E%3C/svg%3E";
 const STAMPED_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23e74c3c' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23e74c3c' stroke-width='1.5'/%3E%3Ctext x='50' y='53' font-family='sans-serif' font-size='14' font-weight='bold' fill='%23e74c3c' text-anchor='middle' transform='rotate(-15, 50, 53)'%3EComplete!!%3C/text%3E%3C/svg%3E";
 
-const STAMP_THRESHOLD_METERS = 20;
+let currentDetectionRadius = 50;
 let stampedDataStorageKey = 'stampedData_default';
 
 // === 2. Application State ===
@@ -35,6 +35,18 @@ function getDistance(lat1, lon1, lat2, lon2) {
               Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+}
+
+function getBearing(lat1, lon1, lat2, lon2) {
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const y = Math.sin(Δλ) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) -
+              Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+    let θ = Math.atan2(y, x);
+    θ = θ * 180 / Math.PI;
+    return (θ + 360) % 360;
 }
 
 function decodeBase64(str) {
@@ -68,7 +80,10 @@ function createStampCards() {
                                  onerror="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='none'; console.warn('Hint img load fail');">
                         </div>` : ''}
                 </div>
-                <p class="distance-info" id="distance-${point.id}">距離: ---</p>
+                <div class="distance-info-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                    <p class="distance-info" id="distance-${point.id}" style="margin:0;">距離: ---</p>
+                    <div id="arrow-${point.id}" class="direction-arrow" style="font-size: 1.5rem; transition: transform 0.3s; display: none;">⬆️</div>
+                </div>
                 <button class="btn btn-primary stamp-btn" id="btn-${point.id}" data-id="${point.id}" disabled>
                     ${point.qrRequired !== false ? 'QRコードをスキャン' : (point.acquisitionButtonLabel || 'スタンプゲット！')}
                 </button>
@@ -209,6 +224,7 @@ async function loadConfig() {
             title: config.t || config.title || "Mystery Stamp Rally",
             completionMessage: config.c || config.completionMessage || "おめでとうございます！すべてのポイントを制覇しました！"
         };
+        currentDetectionRadius = config.r || 50;
         const rawPoints = config.p || config.points || [];
         state.stampPoints = rawPoints.map((pt, idx) => ({
             id: pt.id || pt.i || `pt_${idx}`,
