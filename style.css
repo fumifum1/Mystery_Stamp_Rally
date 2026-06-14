@@ -141,6 +141,11 @@ footer a:hover {
 .btn-link { background: none; color: var(--accent-color); padding: 5px; }
 .btn-link:hover { text-decoration: underline; }
 
+.compass-permission-btn {
+    margin-top: 10px;
+    font-size: 0.85rem !important;
+}
+
 .btn-sm-text {
     font-size: 0.85rem !important;
     padding: 6px 12px !important;

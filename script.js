@@ -14,10 +14,12 @@ let stampedDataStorageKey = 'stampedData_default';
 const state = {
     rallyConfig: { title: "Mystery Stamp Rally", completionMessage: "" },
     stampPoints: [],
-    stampedDataCache: {}, 
+    stampedDataCache: {},
     userPosition: null,
     html5QrCode: null,
-    confetti: { animationId: null, intervalId: null, timeoutId: null }
+    confetti: { animationId: null, intervalId: null, timeoutId: null },
+    deviceHeading: 0,
+    pointBearings: {}
 };
 
 // DOM References
@@ -126,11 +128,67 @@ function updateDistances() {
     if (!state.userPosition) return;
     state.stampPoints.forEach(point => {
         const distance = getDistance(state.userPosition.latitude, state.userPosition.longitude, point.latitude, point.longitude);
+        const bearing = getBearing(state.userPosition.latitude, state.userPosition.longitude, point.latitude, point.longitude);
+        
+        state.pointBearings[point.id] = bearing;
+        
         const distEl = document.getElementById(`distance-${point.id}`);
         if (distEl) distEl.textContent = `距離: ${distance.toFixed(1)} m`;
+
         const btn = document.getElementById(`btn-${point.id}`);
-        if (btn && !state.stampedDataCache[point.id]) btn.disabled = distance > STAMP_THRESHOLD_METERS;
+        if (btn && !state.stampedDataCache[point.id]) btn.disabled = distance > currentDetectionRadius;
     });
+    updateArrowRotation();
+}
+
+function updateArrowRotation() {
+    state.stampPoints.forEach(point => {
+        const arrowEl = document.getElementById(`arrow-${point.id}`);
+        const bearing = state.pointBearings[point.id];
+        
+        if (arrowEl && bearing !== undefined && !state.stampedDataCache[point.id]) {
+            arrowEl.style.display = 'block';
+            // 計算: (目的地の方位) - (端末の向き) を計算して回転
+            const rotation = (bearing - state.deviceHeading + 360) % 360;
+            arrowEl.style.transform = `rotate(${rotation}deg)`;
+        }
+    });
+}
+
+function initOrientation() {
+    const handleOrientation = (event) => {
+        let heading = null;
+        if (event.webkitCompassHeading) {
+            heading = event.webkitCompassHeading;
+        } else if (event.alpha !== null) {
+            heading = (360 - event.alpha) % 360;
+        }
+        
+        if (heading !== null) {
+            state.deviceHeading = heading;
+            updateArrowRotation();
+        }
+    };
+
+    if (window.DeviceOrientationEvent) {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-link compass-permission-btn';
+            btn.innerHTML = '🧭 方向に合わせて矢印を回転させる';
+            btn.onclick = () => {
+                DeviceOrientationEvent.requestPermission().then(res => {
+                    if (res === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                        btn.style.display = 'none';
+                    }
+                }).catch(console.error);
+            };
+            dom.titleElement.after(btn);
+        } else {
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+    }
 }
 
 // === 5. Confetti Animation ===
@@ -304,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createStampCards();
         state.stampedDataCache = JSON.parse(localStorage.getItem(stampedDataStorageKey)) || {};
         updateAllUI();
+        initOrientation();
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition((pos) => {
                 state.userPosition = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
